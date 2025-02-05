@@ -5496,7 +5496,11 @@ module_param(mp_drv_mode, int, 0644);
 MODULE_PARM_DESC(mp_drv_mode, "0: NORMAL; 1: MP MODE");
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
+MODULE_IMPORT_NS("VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver");
+#else
 MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
+#endif
 #endif
 
 MODULE_AUTHOR("AicSemi Corporation");
