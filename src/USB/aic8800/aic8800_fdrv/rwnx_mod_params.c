@@ -866,9 +866,6 @@ static void rwnx_set_vht_capa(struct rwnx_hw *rwnx_hw, struct wiphy *wiphy)
 	}
 
 	if (!rwnx_hw->mod_params->use_80) {
-#ifdef CONFIG_VENDOR_RWNX_VHT_NO80
-		rwnx_hw->vht_cap_2G.cap |= IEEE80211_VHT_CAP_NOT_SUP_WIDTH_80;
-#endif
 		rwnx_hw->vht_cap_2G.cap &= ~IEEE80211_VHT_CAP_SHORT_GI_80;
 	}
 
@@ -977,10 +974,6 @@ static void rwnx_set_vht_capa(struct rwnx_hw *rwnx_hw, struct wiphy *wiphy)
 		}
 
 		if (!rwnx_hw->mod_params->use_80) {
-#ifdef CONFIG_VENDOR_RWNX_VHT_NO80
-			rwnx_hw->vht_cap_5G.cap |=
-				IEEE80211_VHT_CAP_NOT_SUP_WIDTH_80;
-#endif
 			rwnx_hw->vht_cap_5G.cap &=
 				~IEEE80211_VHT_CAP_SHORT_GI_80;
 		}
@@ -1111,9 +1104,6 @@ static void rwnx_set_vht_capa(struct rwnx_hw *rwnx_hw, struct wiphy *wiphy)
 	}
 
 	if (!rwnx_hw->mod_params->use_80) {
-#ifdef CONFIG_VENDOR_RWNX_VHT_NO80
-		band_2GHz->vht_cap.cap |= IEEE80211_VHT_CAP_NOT_SUP_WIDTH_80;
-#endif
 		band_2GHz->vht_cap.cap &= ~IEEE80211_VHT_CAP_SHORT_GI_80;
 	}
 
@@ -1219,10 +1209,6 @@ static void rwnx_set_vht_capa(struct rwnx_hw *rwnx_hw, struct wiphy *wiphy)
 		}
 
 		if (!rwnx_hw->mod_params->use_80) {
-#ifdef CONFIG_VENDOR_RWNX_VHT_NO80
-			band_5GHz->vht_cap.cap |=
-				IEEE80211_VHT_CAP_NOT_SUP_WIDTH_80;
-#endif
 			band_5GHz->vht_cap.cap &=
 				~IEEE80211_VHT_CAP_SHORT_GI_80;
 		}
@@ -1911,9 +1897,6 @@ static void rwnx_set_rf_params(struct rwnx_hw *rwnx_hw, struct wiphy *wiphy)
             wiphy_dbg(wiphy, "found Trident phy .. limit BW to 40MHz\n");
             rwnx_hw->phy.limit_bw = true;
 #ifdef USE_5G
-#ifdef CONFIG_VENDOR_RWNX_VHT_NO80
-            band_5GHz->vht_cap.cap |= IEEE80211_VHT_CAP_NOT_SUP_WIDTH_80;
-#endif
             band_5GHz->vht_cap.cap &= ~(IEEE80211_VHT_CAP_SHORT_GI_80 |
                                         IEEE80211_VHT_CAP_RXSTBC_MASK);
 #endif
