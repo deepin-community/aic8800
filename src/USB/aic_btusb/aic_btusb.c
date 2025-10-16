@@ -38,6 +38,7 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include <linux/reboot.h>
+#include <linux/compat.h>
 
 #include "aic_btusb.h"
 
