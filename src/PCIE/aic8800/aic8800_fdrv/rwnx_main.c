@@ -4166,6 +4166,9 @@ rwnx_cfg80211_tdls_mgmt(struct wiphy *wiphy,
 #else
 	u8 *peer,
 #endif
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0))
+	int link_id,
+#endif
 	u8 action_code,
 	u8 dialog_token,
 	u16 status_code,
