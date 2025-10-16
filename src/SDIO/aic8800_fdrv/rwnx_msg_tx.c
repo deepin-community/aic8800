@@ -525,6 +525,7 @@ int rwnx_send_add_if (struct rwnx_hw *rwnx_hw, const unsigned char *mac,
 	case NL80211_IFTYPE_P2P_CLIENT:
 		add_if_req_param->p2p = true;
 		// no break
+		__attribute__((__fallthrough__));
 	#endif /* CONFIG_RWNX_FULLMAC */
 	case NL80211_IFTYPE_STATION:
 		add_if_req_param->type = MM_STA;
@@ -538,6 +539,7 @@ int rwnx_send_add_if (struct rwnx_hw *rwnx_hw, const unsigned char *mac,
 	case NL80211_IFTYPE_P2P_GO:
 		add_if_req_param->p2p = true;
 		// no break
+		__attribute__((__fallthrough__));
 	#endif /* CONFIG_RWNX_FULLMAC */
 	case NL80211_IFTYPE_AP:
 		add_if_req_param->type = MM_AP;
