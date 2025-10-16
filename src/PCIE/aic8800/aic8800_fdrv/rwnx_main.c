@@ -505,10 +505,17 @@ static const int rwnx_hwq2uapsd[NL80211_NUM_ACS] = {
 #define P2P_ALIVE_TIME_MS       (1*1000)
 #define P2P_ALIVE_TIME_COUNT    200
 
+//because android kernel 5.15 uses kernel 6.0 or 6.1 kernel api
 #ifdef ANDROID_PLATFORM
 #define HIGH_KERNEL_VERSION KERNEL_VERSION(5, 15, 41)
+#define HIGH_KERNEL_VERSION2 KERNEL_VERSION(5, 15, 41)
+#define HIGH_KERNEL_VERSION3 KERNEL_VERSION(5, 15, 104)
+#define HIGH_KERNEL_VERSION4 KERNEL_VERSION(6, 1, 0)
 #else
 #define HIGH_KERNEL_VERSION KERNEL_VERSION(6, 0, 0)
+#define HIGH_KERNEL_VERSION2 KERNEL_VERSION(6, 1, 0)
+#define HIGH_KERNEL_VERSION3 KERNEL_VERSION(6, 3, 0)
+#define HIGH_KERNEL_VERSION4 KERNEL_VERSION(6, 3, 0)
 #endif
 
 extern uint8_t scanning;
