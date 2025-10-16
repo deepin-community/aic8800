@@ -1,1 +1,8 @@
 /patches
+*.o
+*.cmd
+*.ko
+*.symvers
+*.order
+*.mod.c
+*.mod
