@@ -1539,9 +1539,6 @@ static int btchr_init(void)
 {
 	int res = 0;
 	struct device *dev;
-#ifdef CONFIG_PLATFORM_MTK_LINUX
-	bt_devid = MKDEV(111, 0);
-#endif
 	AICBT_INFO("Register usb char device interface for BT driver");
 	/*
      * btchr mutex is used to sync between
@@ -1563,11 +1560,7 @@ static int btchr_init(void)
 		AICBT_ERR("Failed to create bt char class");
 		return PTR_ERR(bt_char_class);
 	}
-#ifndef CONFIG_PLATFORM_MTK_LINUX
 	res = alloc_chrdev_region(&bt_devid, 0, 1, BT_CHAR_DEVICE_NAME);
-#else
-	res = register_chrdev_region(bt_devid, 1, BT_CHAR_DEVICE_NAME);
-#endif
 	if (res < 0) {
 		AICBT_ERR("Failed to allocate bt char device");
 		goto err_alloc;
