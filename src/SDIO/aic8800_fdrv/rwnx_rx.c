@@ -1417,7 +1417,11 @@ int reord_flush_tid(struct aicwf_rx_priv *rx_priv, struct sk_buff *skb, u8 tid)
 	preorder_ctrl->enable = false;
 	spin_unlock_irqrestore(&preorder_ctrl->reord_list_lock, flags);
 	if (timer_pending(&preorder_ctrl->reord_timer))
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
+		ret = timer_delete_sync(&preorder_ctrl->reord_timer);
+#else
 		ret = del_timer_sync(&preorder_ctrl->reord_timer);
+#endif
 	cancel_work_sync(&preorder_ctrl->reord_timer_work);
 
 	return 0;
@@ -1442,7 +1446,11 @@ void reord_deinit_sta(struct aicwf_rx_priv *rx_priv, struct reord_ctrl_info *reo
 		if(preorder_ctrl->enable){
 			preorder_ctrl->enable = false;
 			if (timer_pending(&preorder_ctrl->reord_timer)) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
+ 				ret = timer_delete_sync(&preorder_ctrl->reord_timer);
+#else
 				ret = del_timer_sync(&preorder_ctrl->reord_timer);
+#endif
 			}
 			cancel_work_sync(&preorder_ctrl->reord_timer_work);
 		}
@@ -1653,7 +1661,11 @@ void reord_timeout_handler (struct timer_list *t)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
 	struct reord_ctrl *preorder_ctrl = (struct reord_ctrl *)data;
 #else
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 16, 0)
+	struct reord_ctrl *preorder_ctrl = timer_container_of(preorder_ctrl, t, reord_timer);
+#else
 	struct reord_ctrl *preorder_ctrl = from_timer(preorder_ctrl, t, reord_timer);
+#endif
 #endif
 
 #if 0 //AIDEN
@@ -1804,7 +1816,11 @@ int reord_process_unit(struct aicwf_rx_priv *rx_priv, struct sk_buff *skb, u16 s
 		}
 	} else {
 	if (timer_pending(&preorder_ctrl->reord_timer)) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
+			ret = timer_delete(&preorder_ctrl->reord_timer);
+#else
 			ret = del_timer(&preorder_ctrl->reord_timer);
+#endif
 	}
 	}
 	
@@ -1903,7 +1919,11 @@ void defrag_timeout_cb(struct timer_list *t)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 	defrag_ctrl = (struct defrag_ctrl_info *)data;
 #else
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 16, 0)
+	defrag_ctrl = timer_container_of(defrag_ctrl, t, defrag_timer);
+#else
 	defrag_ctrl = from_timer(defrag_ctrl, t, defrag_timer);
+#endif
 #endif
 
 	printk("%s:%p\r\n", __func__, defrag_ctrl);
@@ -2361,7 +2381,11 @@ check_len_update:
 							skb_tmp = defrag_info->skb;
 							list_del_init(&defrag_info->list);
 							if (timer_pending(&defrag_info->defrag_timer)) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
+								ret = timer_delete(&defrag_info->defrag_timer);
+#else
 								ret = del_timer(&defrag_info->defrag_timer);
+#endif
 							}
 							kfree(defrag_info);
 							spin_unlock_bh(&rwnx_hw->defrag_lock);
