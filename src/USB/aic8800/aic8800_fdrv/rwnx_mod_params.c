@@ -937,7 +937,7 @@ static void rwnx_set_vht_capa(struct rwnx_hw *rwnx_hw, struct wiphy *wiphy)
         nss = 1;
     }
 
-	band_2GHz->vht_cap.vht_supported = true;
+    band_2GHz->vht_cap.vht_supported = true;
 		if (rwnx_hw->mod_params->sgi80)
 			band_2GHz->vht_cap.cap |= IEEE80211_VHT_CAP_SHORT_GI_80;
 		if (rwnx_hw->mod_params->stbc_on)
