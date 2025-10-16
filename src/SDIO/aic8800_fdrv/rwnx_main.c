@@ -3322,8 +3322,13 @@ end:
  * @change_beacon: Change the beacon parameters for an access point mode
  *	interface. This should reject the call when AP mode wasn't started.
  */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0))
+static int rwnx_cfg80211_change_beacon(struct wiphy *wiphy, struct net_device *dev,
+									   struct cfg80211_ap_update *params)
+#else
 static int rwnx_cfg80211_change_beacon(struct wiphy *wiphy, struct net_device *dev,
 									   struct cfg80211_beacon_data *info)
+#endif
 {
 	struct rwnx_hw *rwnx_hw = wiphy_priv(wiphy);
 	struct rwnx_vif *vif = netdev_priv(dev);
@@ -3336,7 +3341,11 @@ static int rwnx_cfg80211_change_beacon(struct wiphy *wiphy, struct net_device *d
 	RWNX_DBG(RWNX_FN_ENTRY_STR);
 
 	// Build the beacon
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 7, 0))
+	buf = rwnx_build_bcn(bcn, &params->beacon);
+#else
 	buf = rwnx_build_bcn(bcn, info);
+#endif
 	if (!buf)
 		return -ENOMEM;
 
