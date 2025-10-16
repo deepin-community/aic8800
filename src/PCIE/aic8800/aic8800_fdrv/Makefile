@@ -6,6 +6,15 @@ EXTRA_CFLAGS += -Wno-pointer-to-int-cast
 #EXTRA_CFLAGS += -Wno-maybe-uninitialized
 #EXTRA_CFLAGS += -Wno-unused-variable
 
+ccflags-y += -Wno-implicit-fallthrough
+ccflags-y += -Wno-unused-function
+ccflags-y += -Wno-unused-variable
+ccflags-y += -Wno-comment
+ccflags-y += -Wno-format
+ccflags-y += -Wno-declaration-after-statement
+ccflags-y += -Wno-misleading-indentation
+ccflags-y += -Wno-parentheses
+
 RWNX_VERS_NUM := 6.4.3.0
 
 CONFIG_COUNTRY_CODE = "00"
