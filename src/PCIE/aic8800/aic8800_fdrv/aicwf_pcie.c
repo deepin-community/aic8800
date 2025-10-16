@@ -437,7 +437,7 @@ static int aicwf_disconnect_inform(struct rwnx_hw *rwnx_hw, struct rwnx_vif *rwn
 	struct net_device *dev;
 #ifdef AICWF_RX_REORDER
 	struct reord_ctrl_info *reord_info, *tmp;
-	u8 *macaddr;
+	const unsigned char	*macaddr;
 	struct aicwf_rx_priv *rx_priv;
 #endif
 

@@ -1619,8 +1619,14 @@ static struct rwnx_vif *rwnx_interface_add(struct rwnx_hw *rwnx_hw,
 	}
 
 	if (type == NL80211_IFTYPE_AP_VLAN) {
+#if LINUX_VERSION_CODE > KERNEL_VERSION(5, 17, 0)
+		//memcpy(ndev->dev_addr, params->macaddr, ETH_ALEN);
+		eth_hw_addr_set(ndev, params->macaddr);
+		memcpy(vif->wdev.address, params->macaddr, ETH_ALEN);
+#else
 		memcpy(ndev->dev_addr, params->macaddr, ETH_ALEN);
 		memcpy(vif->wdev.address, params->macaddr, ETH_ALEN);
+#endif
 	} else {
 #if LINUX_VERSION_CODE > KERNEL_VERSION(5, 17, 0)
 		unsigned char mac_addr[6];
