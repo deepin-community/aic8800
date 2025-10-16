@@ -48,7 +48,11 @@ static bool __rwnx_cfg80211_unexpected_frame(struct net_device *dev, u8 cmd,
 }
 
 bool rwnx_cfg80211_rx_spurious_frame(struct net_device *dev,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0)
 				const u8 *addr, gfp_t gfp)
+#else
+				const u8 *addr, int link_id, gfp_t gfp)
+#endif
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	bool ret;
@@ -63,7 +67,11 @@ bool rwnx_cfg80211_rx_spurious_frame(struct net_device *dev,
 }
 
 bool rwnx_cfg80211_rx_unexpected_4addr_frame(struct net_device *dev,
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 17, 0)
 				const u8 *addr, gfp_t gfp)
+#else
+				const u8 *addr, int link_id, gfp_t gfp)
+#endif
 {
 	struct wireless_dev *wdev = dev->ieee80211_ptr;
 	bool ret;
