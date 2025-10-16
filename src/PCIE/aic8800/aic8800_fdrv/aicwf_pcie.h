@@ -7,23 +7,23 @@
 #ifdef AICWF_PCIE_SUPPORT
 #include "aicwf_pcie_api.h"
 
-#define AIC8800D80_PCI_VENDOR_ID	0xa69c
-#define AIC8800D80_PCI_DEVICE_ID	0x8d80
-#define AIC8800D80X2_PCI_VENDOR_ID	0xa69c
-#define AIC8800D80X2_PCI_DEVICE_ID	0x8d90
+#define AIC8800D80_PCI_VENDOR_ID 0xa69c
+#define AIC8800D80_PCI_DEVICE_ID 0x8d80
+#define AIC8800D80X2_PCI_VENDOR_ID 0xa69c
+#define AIC8800D80X2_PCI_DEVICE_ID 0x8d90
 
 #ifdef CONFIG_TEMP_CONTROL
-#define TEMP_GET_INTERVAL                (10 * 1000)
-#define TEMP_THD_1                       65  //temperature 1
-#define TEMP_THD_2                       85 //temperature 2
-#define BUFFERING_V1                     3
-#define BUFFERING_V2                	 5
-#define TMR_INTERVAL_1                   3	//timer_1 3ms
-#define TMR_INTERVAL_2                   5 	//timer_2 5ms
+#define TEMP_GET_INTERVAL (10 * 1000)
+#define TEMP_THD_1 65 //temperature 1
+#define TEMP_THD_2 85 //temperature 2
+#define BUFFERING_V1 3
+#define BUFFERING_V2 5
+#define TMR_INTERVAL_1 3 //timer_1 3ms
+#define TMR_INTERVAL_2 5 //timer_2 5ms
 #endif
 
-enum AICWF_IC{
-	PRODUCT_ID_AIC8801	=	0,
+enum AICWF_IC {
+	PRODUCT_ID_AIC8801 = 0,
 	PRODUCT_ID_AIC8800DC,
 	PRODUCT_ID_AIC8800DW,
 	PRODUCT_ID_AIC8800D80,
@@ -33,7 +33,7 @@ enum AICWF_IC{
 struct rwnx_hw;
 
 struct aic_pci_dev {
-    struct rwnx_hw *rwnx_hw;
+	struct rwnx_hw *rwnx_hw;
 	struct pci_dev *pci_dev;
 	struct aicwf_bus *bus_if;
 	struct aicwf_rx_priv *rx_priv;
@@ -54,20 +54,20 @@ struct aic_pci_dev {
 	u8 bar_count;
 
 	//for 8800d80x2
-    u8 *emb_hdma ;
-    u8 *emb_tpci ;
-    u8 *emb_mbox ;
-    u8 *emb_sctl ;
-    u8 *emb_shrm ;
-    
-    //> only used in aic_pci_api
-    struct pci_dev *pdev;
+	u8 *emb_hdma;
+	u8 *emb_tpci;
+	u8 *emb_mbox;
+	u8 *emb_sctl;
+	u8 *emb_shrm;
 
-	u32 bar0 ;
-	u32 len0 ;
-    u8 *map0 ;
+	//> only used in aic_pci_api
+	struct pci_dev *pdev;
 
-    atomic_t cnt_msi ;
+	u32 bar0;
+	u32 len0;
+	u8 *map0;
+
+	atomic_t cnt_msi;
 
 #ifdef CONFIG_TEMP_CONTROL
 	spinlock_t tx_flow_lock;
@@ -78,17 +78,16 @@ struct aic_pci_dev {
 	spinlock_t tm_lock;
 	s8_l cur_temp;
 	bool net_stop;
-	bool on_off;	  //for command, 0 - off, 1 - on
+	bool on_off; //for command, 0 - off, 1 - on
 	int8_t get_level; //for command, 0 - 100%, 1 - 12%, 2 - 3%
 	int8_t set_level; //for command, 0 - driver auto, 1 - 12%, 2 - 3%
 	int interval_t1;
 	int interval_t2;
-	u8_l cur_stat;	  //0--normal temp, 1/2--buffering temp
+	u8_l cur_stat; //0--normal temp, 1/2--buffering temp
 	s8_l tp_thd_1; // temperature threshold 1
 	s8_l tp_thd_2; // temperature threshold 2
 	int8_t tm_start; //timer start flag
 #endif
-
 };
 
 #ifdef CONFIG_TEMP_CONTROL
@@ -101,7 +100,8 @@ void aicwf_netif_ctrl(struct aic_pci_dev *pcidev, int val);
 int aicwf_pcie_register_drv(void);
 void aicwf_pcie_unregister_drv(void);
 void aicwf_pcie_bus_init(struct aic_pci_dev *pciedev);
-int rwnx_plat_bin_fw_upload_2(struct rwnx_hw *rwnx_hw, u32 fw_addr, char *filename);
+int rwnx_plat_bin_fw_upload_2(struct rwnx_hw *rwnx_hw, u32 fw_addr,
+			      char *filename);
 int patch_config(struct rwnx_hw *rwnx_hw);
 int pcie_reset_firmware(struct rwnx_hw *rwnx_hw, u32 fw_addr);
 int pcie_rxbuf_rep_thread(void *data);

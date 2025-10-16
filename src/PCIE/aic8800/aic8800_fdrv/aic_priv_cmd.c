@@ -21,10 +21,11 @@
 #include "aicwf_compat_8800d80.h"
 #include "rwnx_mod_params.h"
 
-
 extern int testmode;
 static void print_help(const char *cmd);
-struct dbg_rftest_cmd_cfm cfm = {{0,}};
+struct dbg_rftest_cmd_cfm cfm = { {
+	0,
+} };
 
 extern char country_code[4];
 
@@ -116,8 +117,7 @@ typedef struct {
 } cob_result_ptr_t;
 #endif
 
-typedef struct
-{
+typedef struct {
 	u8_l func;
 	u8_l cnt;
 	u8_l reserved[2];
@@ -126,9 +126,9 @@ typedef struct
 
 #define CMD_MAXARGS 30
 
-#if 0//#include <linux/ctype.h>
-#define isblank(c)		((c) == ' ' || (c) == '\t')
-#define isascii(c)		(((unsigned char)(c)) <= 0x7F)
+#if 0 //#include <linux/ctype.h>
+#define isblank(c) ((c) == ' ' || (c) == '\t')
+#define isascii(c) (((unsigned char)(c)) <= 0x7F)
 
 static int isdigit(unsigned char c)
 {
@@ -159,7 +159,7 @@ static unsigned char toupper(unsigned char c)
 }
 #endif
 
-static int parse_line (char *line, char *argv[])
+static int parse_line(char *line, char *argv[])
 {
 	int nargs = 0;
 
@@ -169,7 +169,7 @@ static int parse_line (char *line, char *argv[])
 			++line;
 		}
 
-		if (*line == '\0') {    /* end of line, no more args    */
+		if (*line == '\0') { /* end of line, no more args    */
 			argv[nargs] = 0;
 			return nargs;
 		}
@@ -187,7 +187,7 @@ static int parse_line (char *line, char *argv[])
 				++line;
 			}
 		} else {
-			argv[nargs++] = line;    /* begin of argument string    */
+			argv[nargs++] = line; /* begin of argument string    */
 
 			/* find end of string */
 			while (*line && (*line != ' ') && (*line != '\t')) {
@@ -195,12 +195,12 @@ static int parse_line (char *line, char *argv[])
 			}
 		}
 
-		if (*line == '\0') {    /* end of line, no more args    */
+		if (*line == '\0') { /* end of line, no more args    */
 			argv[nargs] = 0;
 			return nargs;
 		}
 
-		*line++ = '\0';         /* terminate current arg     */
+		*line++ = '\0'; /* terminate current arg     */
 	}
 
 	printk("** Too many args (max. %d) **\n", CMD_MAXARGS);
@@ -229,7 +229,10 @@ unsigned int command_strtoul(const char *cp, char **endp, unsigned int base)
 		is_neg = 1;
 		cp++;
 	}
-	while (isxdigit(*cp) && (value = isdigit(*cp) ? *cp - '0' : (islower(*cp) ? toupper(*cp) : *cp) - 'A' + 10) < base) {
+	while (isxdigit(*cp) &&
+	       (value = isdigit(*cp) ? *cp - '0' :
+				       (islower(*cp) ? toupper(*cp) : *cp) -
+					       'A' + 10) < base) {
 		result = result * base + value;
 		cp++;
 	}
@@ -249,7 +252,8 @@ int str_starts(const char *str, const char *start)
 /*
  * aic_priv_cmd handers.
  */
-static int aic_priv_cmd_set_tx (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_tx(struct rwnx_hw *rwnx_hw, int argc, char *argv[],
+			       char *command)
 {
 	cmd_rf_settx_t settx_param;
 	u8_l set_p = 0;
@@ -263,7 +267,7 @@ static int aic_priv_cmd_set_tx (struct rwnx_hw *rwnx_hw, int argc, char *argv[],
 	txpwr_loss = &txpwr_loss_tmp;
 #endif
 #ifdef AICWF_PCIE_SUPPORT
-		struct aic_pci_dev *dev = g_rwnx_plat->pcidev;
+	struct aic_pci_dev *dev = g_rwnx_plat->pcidev;
 #endif
 
 	if (argc < 6)
@@ -280,7 +284,7 @@ static int aic_priv_cmd_set_tx (struct rwnx_hw *rwnx_hw, int argc, char *argv[],
 		settx_param.tx_intv_us = 10000; // set default val 10ms
 	}
 	if (argc > 7) {
-		if (dev->chip_id == PRODUCT_ID_AIC8801){
+		if (dev->chip_id == PRODUCT_ID_AIC8801) {
 			AICWFDBG(LOGERROR, "unsupported cmd\n");
 			return -EINVAL;
 		}
@@ -312,19 +316,21 @@ static int aic_priv_cmd_set_tx (struct rwnx_hw *rwnx_hw, int argc, char *argv[],
 		set_p = 1;
 	}
 	settx_param.max_pwr = POWER_LEVEL_INVALID_VAL;
-	AICWFDBG(LOGINFO, "txparam:%d,%d,%d,%d,%d,%d\n", settx_param.chan, settx_param.bw,
-		settx_param.mode, settx_param.rate, settx_param.length, settx_param.tx_intv_us);
+	AICWFDBG(LOGINFO, "txparam:%d,%d,%d,%d,%d,%d\n", settx_param.chan,
+		 settx_param.bw, settx_param.mode, settx_param.rate,
+		 settx_param.length, settx_param.tx_intv_us);
 #ifdef CONFIG_POWER_LIMIT
 	r_idx = get_ccode_region(country_code);
 	txpwr_loss = &txpwr_loss_tmp;
 	get_userconfig_txpwr_loss(txpwr_loss);
 	if (txpwr_loss->loss_enable_2g4 == 1)
 		AICWFDBG(LOGINFO, "%s:loss_value_2g4: %d\r\n", __func__,
-					txpwr_loss->loss_value_2g4);
+			 txpwr_loss->loss_value_2g4);
 	if (txpwr_loss->loss_enable_5g == 1)
 		AICWFDBG(LOGINFO, "%s:loss_value_5g: %d\r\n", __func__,
-				 txpwr_loss->loss_value_5g);
-	max_pwr = get_powerlimit_by_chnum(settx_param.chan, r_idx, settx_param.bw);
+			 txpwr_loss->loss_value_5g);
+	max_pwr = get_powerlimit_by_chnum(settx_param.chan, r_idx,
+					  settx_param.bw);
 	if (settx_param.chan >= 36) {
 		if (txpwr_loss->loss_enable_5g == 1)
 			max_pwr -= txpwr_loss->loss_value_5g;
@@ -337,24 +343,27 @@ static int aic_priv_cmd_set_tx (struct rwnx_hw *rwnx_hw, int argc, char *argv[],
 		settx_param.max_pwr = max_pwr;
 		AICWFDBG(LOGINFO, "max_pwr:%d\n", settx_param.max_pwr);
 	} else
-		AICWFDBG(LOGINFO, "the specified power is input without power limit\n");
+		AICWFDBG(LOGINFO,
+			 "the specified power is input without power limit\n");
 #endif
 
 	if (set_p && (lvl_pwr != 255))
 		rwnx_send_rftest_req(rwnx_hw, RDWR_PWRLVL, 4, buf, &cfm);
 
-	rwnx_send_rftest_req(rwnx_hw, SET_TX, sizeof(cmd_rf_settx_t), (u8_l *)&settx_param, NULL);
+	rwnx_send_rftest_req(rwnx_hw, SET_TX, sizeof(cmd_rf_settx_t),
+			     (u8_l *)&settx_param, NULL);
 	return 0;
 }
 
-
-static int aic_priv_cmd_set_txstop (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_txstop(struct rwnx_hw *rwnx_hw, int argc,
+				   char *argv[], char *command)
 {
 	rwnx_send_rftest_req(rwnx_hw, SET_TXSTOP, 0, NULL, NULL);
 	return 0;
 }
 
-static int aic_priv_cmd_set_rx (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_rx(struct rwnx_hw *rwnx_hw, int argc, char *argv[],
+			       char *command)
 {
 	cmd_rf_rx_t setrx_param;
 
@@ -363,24 +372,28 @@ static int aic_priv_cmd_set_rx (struct rwnx_hw *rwnx_hw, int argc, char *argv[],
 	}
 	setrx_param.chan = command_strtoul(argv[1], NULL, 10);
 	setrx_param.bw = command_strtoul(argv[2], NULL, 10);
-	rwnx_send_rftest_req(rwnx_hw, SET_RX, sizeof(cmd_rf_rx_t), (u8_l *)&setrx_param, NULL);
+	rwnx_send_rftest_req(rwnx_hw, SET_RX, sizeof(cmd_rf_rx_t),
+			     (u8_l *)&setrx_param, NULL);
 	return 0;
 }
 
-static int aic_priv_cmd_get_rx_result (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_get_rx_result(struct rwnx_hw *rwnx_hw, int argc,
+				      char *argv[], char *command)
 {
 	rwnx_send_rftest_req(rwnx_hw, GET_RX_RESULT, 0, NULL, &cfm);
 	memcpy(command, &cfm.rftest_result[0], 8);
 	return 8;
 }
 
-static int aic_priv_cmd_set_rxstop (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_rxstop(struct rwnx_hw *rwnx_hw, int argc,
+				   char *argv[], char *command)
 {
 	rwnx_send_rftest_req(rwnx_hw, SET_RXSTOP, 0, NULL, NULL);
 	return 0;
 }
 
-static int aic_priv_cmd_set_tx_tone (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_tx_tone(struct rwnx_hw *rwnx_hw, int argc,
+				    char *argv[], char *command)
 {
 	u8_l func = 0;
 	u8_l buf[2];
@@ -388,10 +401,10 @@ static int aic_priv_cmd_set_tx_tone (struct rwnx_hw *rwnx_hw, int argc, char *ar
 
 	AICWFDBG(LOGINFO, "%s argc:%d\n", argv[0], argc);
 	if ((argc == 2) || (argc == 3)) {
-		AICWFDBG(LOGINFO, "argv 1:%s\n",argv[1]);
+		AICWFDBG(LOGINFO, "argv 1:%s\n", argv[1]);
 		func = (u8_l)command_strtoul(argv[1], NULL, 16);
 		if (argc == 3) {
-			AICWFDBG(LOGINFO, "argv 2:%s\n",argv[2]);
+			AICWFDBG(LOGINFO, "argv 2:%s\n", argv[2]);
 			freq_ = (u8_l)command_strtoul(argv[2], NULL, 10);
 		} else {
 			freq_ = 0;
@@ -405,16 +418,19 @@ static int aic_priv_cmd_set_tx_tone (struct rwnx_hw *rwnx_hw, int argc, char *ar
 	return 0;
 }
 
-static int aic_priv_cmd_set_rx_meter (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_rx_meter(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	s8_l freq = 0;
 
 	freq = (int)command_strtoul(argv[1], NULL, 10);
-	rwnx_send_rftest_req(rwnx_hw, SET_RX_METER, sizeof(freq), (u8_l *)&freq, NULL);
+	rwnx_send_rftest_req(rwnx_hw, SET_RX_METER, sizeof(freq), (u8_l *)&freq,
+			     NULL);
 	return 0;
 }
 
-static int aic_priv_cmd_set_set_power (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_set_power(struct rwnx_hw *rwnx_hw, int argc,
+				      char *argv[], char *command)
 {
 	u8_l ana_pwr;
 	u8_l dig_pwr;
@@ -442,11 +458,13 @@ static int aic_priv_cmd_set_set_power (struct rwnx_hw *rwnx_hw, int argc, char *
 			return -EINVAL;
 	}
 	AICWFDBG(LOGINFO, "pwr =%x\r\n", pwr);
-	rwnx_send_rftest_req(rwnx_hw, SET_POWER, sizeof(pwr), (u8_l *)&pwr, NULL);
+	rwnx_send_rftest_req(rwnx_hw, SET_POWER, sizeof(pwr), (u8_l *)&pwr,
+			     NULL);
 	return 0;
 }
 
-static int aic_priv_cmd_set_xtal_cap (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_xtal_cap(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	u8_l xtal_cap;
 
@@ -455,12 +473,14 @@ static int aic_priv_cmd_set_xtal_cap (struct rwnx_hw *rwnx_hw, int argc, char *a
 
 	xtal_cap = command_strtoul(argv[1], NULL, 10);
 	AICWFDBG(LOGINFO, "xtal_cap =%x\r\n", xtal_cap);
-	rwnx_send_rftest_req(rwnx_hw, SET_XTAL_CAP, sizeof(xtal_cap), (u8_l *)&xtal_cap, &cfm);
+	rwnx_send_rftest_req(rwnx_hw, SET_XTAL_CAP, sizeof(xtal_cap),
+			     (u8_l *)&xtal_cap, &cfm);
 	memcpy(command, &cfm.rftest_result[0], 4);
 	return 4;
 }
 
-static int aic_priv_cmd_set_xtal_cap_fine (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_xtal_cap_fine(struct rwnx_hw *rwnx_hw, int argc,
+					  char *argv[], char *command)
 {
 	u8_l xtal_cap_fine;
 
@@ -469,12 +489,14 @@ static int aic_priv_cmd_set_xtal_cap_fine (struct rwnx_hw *rwnx_hw, int argc, ch
 
 	xtal_cap_fine = command_strtoul(argv[1], NULL, 10);
 	AICWFDBG(LOGINFO, "xtal_cap_fine =%x\r\n", xtal_cap_fine);
-	rwnx_send_rftest_req(rwnx_hw, SET_XTAL_CAP_FINE, sizeof(xtal_cap_fine), (u8_l *)&xtal_cap_fine, &cfm);
+	rwnx_send_rftest_req(rwnx_hw, SET_XTAL_CAP_FINE, sizeof(xtal_cap_fine),
+			     (u8_l *)&xtal_cap_fine, &cfm);
 	memcpy(command, &cfm.rftest_result[0], 4);
 	return 4;
 }
 
-static int aic_priv_cmd_get_efuse_block (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_get_efuse_block(struct rwnx_hw *rwnx_hw, int argc,
+					char *argv[], char *command)
 {
 	cmd_rf_getefuse_t getefuse_param;
 
@@ -482,13 +504,16 @@ static int aic_priv_cmd_get_efuse_block (struct rwnx_hw *rwnx_hw, int argc, char
 		return -EINVAL;
 
 	getefuse_param.block = command_strtoul(argv[1], NULL, 10);
-	rwnx_send_rftest_req(rwnx_hw, GET_EFUSE_BLOCK, sizeof(cmd_rf_getefuse_t), (u8_l *)&getefuse_param, &cfm);
+	rwnx_send_rftest_req(rwnx_hw, GET_EFUSE_BLOCK,
+			     sizeof(cmd_rf_getefuse_t), (u8_l *)&getefuse_param,
+			     &cfm);
 	AICWFDBG(LOGINFO, "get val=%llx\r\n", cfm.rftest_result[0]);
 	memcpy(command, &cfm.rftest_result[0], 4);
 	return 4;
 }
 
-static int aic_priv_cmd_set_freq_cal (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_freq_cal(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	cmd_rf_setfreq_t cmd_setfreq;
 
@@ -497,12 +522,14 @@ static int aic_priv_cmd_set_freq_cal (struct rwnx_hw *rwnx_hw, int argc, char *a
 
 	cmd_setfreq.val = command_strtoul(argv[1], NULL, 16);
 	AICWFDBG(LOGINFO, "param:%x\r\n", cmd_setfreq.val);
-	rwnx_send_rftest_req(rwnx_hw, SET_FREQ_CAL, sizeof(cmd_rf_setfreq_t), (u8_l *)&cmd_setfreq, &cfm);
+	rwnx_send_rftest_req(rwnx_hw, SET_FREQ_CAL, sizeof(cmd_rf_setfreq_t),
+			     (u8_l *)&cmd_setfreq, &cfm);
 	memcpy(command, &cfm.rftest_result[0], 4);
 	return 4;
 }
 
-static int aic_priv_cmd_set_freq_cal_fine (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_freq_cal_fine(struct rwnx_hw *rwnx_hw, int argc,
+					  char *argv[], char *command)
 {
 	cmd_rf_setfreq_t cmd_setfreq;
 
@@ -511,12 +538,15 @@ static int aic_priv_cmd_set_freq_cal_fine (struct rwnx_hw *rwnx_hw, int argc, ch
 
 	cmd_setfreq.val = command_strtoul(argv[1], NULL, 16);
 	AICWFDBG(LOGINFO, "param:%x\r\n", cmd_setfreq.val);
-	rwnx_send_rftest_req(rwnx_hw, SET_FREQ_CAL_FINE, sizeof(cmd_rf_setfreq_t), (u8_l *)&cmd_setfreq, &cfm);
+	rwnx_send_rftest_req(rwnx_hw, SET_FREQ_CAL_FINE,
+			     sizeof(cmd_rf_setfreq_t), (u8_l *)&cmd_setfreq,
+			     &cfm);
 	memcpy(command, &cfm.rftest_result[0], 4);
 	return 4;
 }
 
-static int aic_priv_cmd_get_freq_cal (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_get_freq_cal(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	u8_l val;
 #ifdef AICWF_SDIO_SUPPORT
@@ -532,15 +562,19 @@ static int aic_priv_cmd_get_freq_cal (struct rwnx_hw *rwnx_hw, int argc, char *a
 	memcpy(command, &cfm.rftest_result[0], 4);
 	val = cfm.rftest_result[0];
 	if (dev->chip_id != PRODUCT_ID_AIC8801) {
-		AICWFDBG(LOGINFO, "cap=0x%x (remain:%x), cap_fine=%x (remain:%x)\n",
-				val & 0xff, (val >> 8) & 0xff, (val >> 16) & 0xff, (val >> 24) & 0xff);
+		AICWFDBG(LOGINFO,
+			 "cap=0x%x (remain:%x), cap_fine=%x (remain:%x)\n",
+			 val & 0xff, (val >> 8) & 0xff, (val >> 16) & 0xff,
+			 (val >> 24) & 0xff);
 	} else {
-		AICWFDBG(LOGINFO, "cap=0x%x, cap_fine=0x%x\n", val & 0xff, (val >> 8) & 0xff);
+		AICWFDBG(LOGINFO, "cap=0x%x, cap_fine=0x%x\n", val & 0xff,
+			 (val >> 8) & 0xff);
 	}
 	return 4;
 }
 
-static int aic_priv_cmd_set_mac_addr (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_mac_addr(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	u8_l mac_addr[6];
 
@@ -553,12 +587,16 @@ static int aic_priv_cmd_set_mac_addr (struct rwnx_hw *rwnx_hw, int argc, char *a
 	mac_addr[2] = command_strtoul(argv[4], NULL, 16);
 	mac_addr[1] = command_strtoul(argv[5], NULL, 16);
 	mac_addr[0] = command_strtoul(argv[6], NULL, 16);
-	AICWFDBG(LOGINFO, "set macaddr:%x,%x,%x,%x,%x,%x\n", mac_addr[5], mac_addr[4], mac_addr[3], mac_addr[2], mac_addr[1], mac_addr[0]);
-	rwnx_send_rftest_req(rwnx_hw, SET_MAC_ADDR, sizeof(mac_addr), (u8_l *)&mac_addr, NULL);
+	AICWFDBG(LOGINFO, "set macaddr:%x,%x,%x,%x,%x,%x\n", mac_addr[5],
+		 mac_addr[4], mac_addr[3], mac_addr[2], mac_addr[1],
+		 mac_addr[0]);
+	rwnx_send_rftest_req(rwnx_hw, SET_MAC_ADDR, sizeof(mac_addr),
+			     (u8_l *)&mac_addr, NULL);
 	return 0;
 }
 
-static int aic_priv_cmd_get_mac_addr (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_get_mac_addr(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	u32_l addr0, addr1;
 #ifdef AICWF_SDIO_SUPPORT
@@ -573,10 +611,12 @@ static int aic_priv_cmd_get_mac_addr (struct rwnx_hw *rwnx_hw, int argc, char *a
 	rwnx_send_rftest_req(rwnx_hw, GET_MAC_ADDR, 0, NULL, &cfm);
 	memcpy(command, &cfm.rftest_result[0], 8);
 	addr0 = cfm.rftest_result[0];
-	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) || (dev->chip_id == PRODUCT_ID_AIC8800DW)) {
+	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) ||
+	    (dev->chip_id == PRODUCT_ID_AIC8800DW)) {
 		int rem_cnt = (cfm.rftest_result[1] >> 16) & 0x00FF;
 		addr1 = cfm.rftest_result[1] & 0x0000FFFF;
-		AICWFDBG(LOGINFO, "0x%x,0x%x (remain:%x)\n", addr0, addr1, rem_cnt);
+		AICWFDBG(LOGINFO, "0x%x,0x%x (remain:%x)\n", addr0, addr1,
+			 rem_cnt);
 	} else {
 		addr1 = cfm.rftest_result[1];
 		AICWFDBG(LOGINFO, "0x%x,0x%x\n", addr0, addr1);
@@ -584,7 +624,8 @@ static int aic_priv_cmd_get_mac_addr (struct rwnx_hw *rwnx_hw, int argc, char *a
 	return 8;
 }
 
-static int aic_priv_cmd_set_bt_mac_addr (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_bt_mac_addr(struct rwnx_hw *rwnx_hw, int argc,
+					char *argv[], char *command)
 {
 	u8_l mac_addr[6];
 
@@ -597,12 +638,16 @@ static int aic_priv_cmd_set_bt_mac_addr (struct rwnx_hw *rwnx_hw, int argc, char
 	mac_addr[2] = command_strtoul(argv[4], NULL, 16);
 	mac_addr[1] = command_strtoul(argv[5], NULL, 16);
 	mac_addr[0] = command_strtoul(argv[6], NULL, 16);
-	AICWFDBG(LOGINFO, "set bt macaddr:%x,%x,%x,%x,%x,%x\n", mac_addr[5], mac_addr[4], mac_addr[3], mac_addr[2], mac_addr[1], mac_addr[0]);
-	rwnx_send_rftest_req(rwnx_hw, SET_BT_MAC_ADDR, sizeof(mac_addr), (u8_l *)&mac_addr, NULL);
+	AICWFDBG(LOGINFO, "set bt macaddr:%x,%x,%x,%x,%x,%x\n", mac_addr[5],
+		 mac_addr[4], mac_addr[3], mac_addr[2], mac_addr[1],
+		 mac_addr[0]);
+	rwnx_send_rftest_req(rwnx_hw, SET_BT_MAC_ADDR, sizeof(mac_addr),
+			     (u8_l *)&mac_addr, NULL);
 	return 0;
 }
 
-static int aic_priv_cmd_get_bt_mac_addr (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_get_bt_mac_addr(struct rwnx_hw *rwnx_hw, int argc,
+					char *argv[], char *command)
 {
 	u32_l addr0, addr1;
 #ifdef AICWF_SDIO_SUPPORT
@@ -617,10 +662,12 @@ static int aic_priv_cmd_get_bt_mac_addr (struct rwnx_hw *rwnx_hw, int argc, char
 	rwnx_send_rftest_req(rwnx_hw, GET_BT_MAC_ADDR, 0, NULL, &cfm);
 	memcpy(command, &cfm.rftest_result[0], 8);
 	addr0 = cfm.rftest_result[0];
-	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) || (dev->chip_id == PRODUCT_ID_AIC8800DW)) {
+	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) ||
+	    (dev->chip_id == PRODUCT_ID_AIC8800DW)) {
 		int rem_cnt = (cfm.rftest_result[1] >> 16) & 0x00FF;
 		addr1 = cfm.rftest_result[1] & 0x0000FFFF;
-		AICWFDBG(LOGINFO, "0x%x,0x%x (remain:%x)\n", addr0, addr1, rem_cnt);
+		AICWFDBG(LOGINFO, "0x%x,0x%x (remain:%x)\n", addr0, addr1,
+			 rem_cnt);
 	} else {
 		addr1 = cfm.rftest_result[1];
 		AICWFDBG(LOGINFO, "0x%x,0x%x\n", addr0, addr1);
@@ -628,7 +675,8 @@ static int aic_priv_cmd_get_bt_mac_addr (struct rwnx_hw *rwnx_hw, int argc, char
 	return 8;
 }
 
-static int aic_priv_cmd_set_vendor_info (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_vendor_info(struct rwnx_hw *rwnx_hw, int argc,
+					char *argv[], char *command)
 {
 	u8_l vendor_info;
 #ifdef AICWF_SDIO_SUPPORT
@@ -643,7 +691,8 @@ static int aic_priv_cmd_set_vendor_info (struct rwnx_hw *rwnx_hw, int argc, char
 	vendor_info = command_strtoul(argv[1], NULL, 16);
 	AICWFDBG(LOGINFO, "set vendor info:%x\n", vendor_info);
 	rwnx_send_rftest_req(rwnx_hw, SET_VENDOR_INFO, 1, &vendor_info, &cfm);
-	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) || (dev->chip_id == PRODUCT_ID_AIC8800DW)) {
+	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) ||
+	    (dev->chip_id == PRODUCT_ID_AIC8800DW)) {
 		memcpy(command, &cfm.rftest_result[0], 2);
 		return 2;
 	} else {
@@ -653,7 +702,8 @@ static int aic_priv_cmd_set_vendor_info (struct rwnx_hw *rwnx_hw, int argc, char
 	AICWFDBG(LOGINFO, "0x%llx\n", cfm.rftest_result[0]);
 }
 
-static int aic_priv_cmd_get_vendor_info (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_get_vendor_info(struct rwnx_hw *rwnx_hw, int argc,
+					char *argv[], char *command)
 {
 #ifdef AICWF_SDIO_SUPPORT
 	struct aic_sdio_dev *dev = g_rwnx_plat->sdiodev;
@@ -665,7 +715,8 @@ static int aic_priv_cmd_get_vendor_info (struct rwnx_hw *rwnx_hw, int argc, char
 	struct aic_pci_dev *dev = g_rwnx_plat->pcidev;
 #endif
 	rwnx_send_rftest_req(rwnx_hw, GET_VENDOR_INFO, 0, NULL, &cfm);
-	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) || (dev->chip_id == PRODUCT_ID_AIC8800DW)) {
+	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) ||
+	    (dev->chip_id == PRODUCT_ID_AIC8800DW)) {
 		memcpy(command, &cfm.rftest_result[0], 2);
 		return 2;
 	} else {
@@ -675,7 +726,8 @@ static int aic_priv_cmd_get_vendor_info (struct rwnx_hw *rwnx_hw, int argc, char
 	AICWFDBG(LOGINFO, "0x%llx\n", cfm.rftest_result[0]);
 }
 
-static int aic_priv_cmd_rdwr_pwrmm (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_pwrmm(struct rwnx_hw *rwnx_hw, int argc,
+				   char *argv[], char *command)
 {
 	if (argc <= 1) { // read cur
 		rwnx_send_rftest_req(rwnx_hw, RDWR_PWRMM, 0, NULL, &cfm);
@@ -683,13 +735,15 @@ static int aic_priv_cmd_rdwr_pwrmm (struct rwnx_hw *rwnx_hw, int argc, char *arg
 		u8_l pwrmm = (u8_l)command_strtoul(argv[1], NULL, 16);
 		pwrmm = (pwrmm) ? 1 : 0;
 		AICWFDBG(LOGINFO, "set pwrmm = %x\r\n", pwrmm);
-		rwnx_send_rftest_req(rwnx_hw, RDWR_PWRMM, sizeof(pwrmm), (u8_l *)&pwrmm, &cfm);
+		rwnx_send_rftest_req(rwnx_hw, RDWR_PWRMM, sizeof(pwrmm),
+				     (u8_l *)&pwrmm, &cfm);
 	}
 	memcpy(command, &cfm.rftest_result[0], 4);
 	return 4;
 }
 
-static int aic_priv_cmd_rdwr_pwridx (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_pwridx(struct rwnx_hw *rwnx_hw, int argc,
+				    char *argv[], char *command)
 {
 	u8_l func = 0;
 #ifdef AICWF_SDIO_SUPPORT
@@ -701,22 +755,24 @@ static int aic_priv_cmd_rdwr_pwridx (struct rwnx_hw *rwnx_hw, int argc, char *ar
 #ifdef AICWF_PCIE_SUPPORT
 	struct aic_pci_dev *dev = g_rwnx_plat->pcidev;
 #endif
-	if (dev->chip_id != PRODUCT_ID_AIC8801){
+	if (dev->chip_id != PRODUCT_ID_AIC8801) {
 		AICWFDBG(LOGERROR, "unsupported cmd\n");
 		return -EINVAL;
 	}
 	if (argc > 1) {
 		func = (u8_l)command_strtoul(argv[1], NULL, 16);
-		}
+	}
 	if (func == 0) { // read cur
 		rwnx_send_rftest_req(rwnx_hw, RDWR_PWRIDX, 0, NULL, &cfm);
 	} else if (func <= 2) { // write 2.4g/5g pwr idx
 		if (argc > 3) {
 			u8_l type = (u8_l)command_strtoul(argv[2], NULL, 16);
 			u8_l pwridx = (u8_l)command_strtoul(argv[3], NULL, 10);
-			u8_l buf[3] = {func, type, pwridx};
-			AICWFDBG(LOGINFO, "set pwridx:[%x][%x]=%x\r\n", func, type, pwridx);
-			rwnx_send_rftest_req(rwnx_hw, RDWR_PWRIDX, sizeof(buf), buf, &cfm);
+			u8_l buf[3] = { func, type, pwridx };
+			AICWFDBG(LOGINFO, "set pwridx:[%x][%x]=%x\r\n", func,
+				 type, pwridx);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_PWRIDX, sizeof(buf),
+					     buf, &cfm);
 		} else {
 			return -EINVAL;
 		}
@@ -727,7 +783,8 @@ static int aic_priv_cmd_rdwr_pwridx (struct rwnx_hw *rwnx_hw, int argc, char *ar
 	return 9;
 }
 
-static int aic_priv_cmd_rdwr_pwrlvl (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_pwrlvl(struct rwnx_hw *rwnx_hw, int argc,
+				    char *argv[], char *command)
 {
 	u8_l func = 0;
 #ifdef AICWF_SDIO_SUPPORT
@@ -739,7 +796,7 @@ static int aic_priv_cmd_rdwr_pwrlvl (struct rwnx_hw *rwnx_hw, int argc, char *ar
 #ifdef AICWF_PCIE_SUPPORT
 	struct aic_pci_dev *dev = g_rwnx_plat->pcidev;
 #endif
-	if (dev->chip_id == PRODUCT_ID_AIC8801){
+	if (dev->chip_id == PRODUCT_ID_AIC8801) {
 		AICWFDBG(LOGERROR, "unsupported cmd\n");
 		return -EINVAL;
 	}
@@ -752,17 +809,23 @@ static int aic_priv_cmd_rdwr_pwrlvl (struct rwnx_hw *rwnx_hw, int argc, char *ar
 		if (argc > 4) {
 			u8_l grp = (u8_l)command_strtoul(argv[2], NULL, 16);
 			u8_l idx, size;
-			u8_l buf[14] = {func, grp,};
+			u8_l buf[14] = {
+				func,
+				grp,
+			};
 			if (argc > 12) { // set all grp
-			AICWFDBG(LOGINFO, "set pwrlvl %s:\n"
-				   "  [%x] =", (func == 1) ? "2.4g" : "5g", grp);
+				AICWFDBG(LOGINFO,
+					 "set pwrlvl %s:\n"
+					 "  [%x] =",
+					 (func == 1) ? "2.4g" : "5g", grp);
 				if (grp == 1) { // TXPWR_LVL_GRP_11N_11AC
 					size = 10;
 				} else {
 					size = 12;
 				}
 				for (idx = 0; idx < size; idx++) {
-					s8_l pwrlvl = (s8_l)command_strtoul(argv[3 + idx], NULL, 10);
+					s8_l pwrlvl = (s8_l)command_strtoul(
+						argv[3 + idx], NULL, 10);
 					buf[2 + idx] = (u8_l)pwrlvl;
 					if (idx && !(idx & 0x3)) {
 						AICWFDBG(LOGINFO, " ");
@@ -772,24 +835,31 @@ static int aic_priv_cmd_rdwr_pwrlvl (struct rwnx_hw *rwnx_hw, int argc, char *ar
 				AICWFDBG(LOGINFO, "\n");
 				size += 2;
 			} else { // set grp[idx]
-				u8_l idx = (u8_l)command_strtoul(argv[3], NULL, 10);
-				s8_l pwrlvl = (s8_l)command_strtoul(argv[4], NULL, 10);
+				u8_l idx = (u8_l)command_strtoul(argv[3], NULL,
+								 10);
+				s8_l pwrlvl = (s8_l)command_strtoul(argv[4],
+								    NULL, 10);
 				buf[2] = idx;
 				buf[3] = (u8_l)pwrlvl;
 				size = 4;
-				AICWFDBG(LOGINFO, "set pwrlvl %s:\n"
-					   "  [%x][%d] = %d\n", (func == 1) ? "2.4g" : "5g", grp, idx, pwrlvl);
+				AICWFDBG(LOGINFO,
+					 "set pwrlvl %s:\n"
+					 "  [%x][%d] = %d\n",
+					 (func == 1) ? "2.4g" : "5g", grp, idx,
+					 pwrlvl);
 			}
-		rwnx_send_rftest_req(rwnx_hw, RDWR_PWRLVL, size, buf, &cfm);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_PWRLVL, size, buf,
+					     &cfm);
 		} else {
-		AICWFDBG(LOGERROR, "wrong args\n");
-		return -EINVAL;
+			AICWFDBG(LOGERROR, "wrong args\n");
+			return -EINVAL;
 		}
 	} else {
 		AICWFDBG(LOGERROR, "wrong func: %x\n", func);
 		return -EINVAL;
 	}
-	if((dev->chip_id == PRODUCT_ID_AIC8800D80) || (dev->chip_id == PRODUCT_ID_AIC8800D80X2)){
+	if ((dev->chip_id == PRODUCT_ID_AIC8800D80) ||
+	    (dev->chip_id == PRODUCT_ID_AIC8800D80X2)) {
 		memcpy(command, &cfm.rftest_result[0], 6 * 12);
 		return (6 * 12);
 	} else {
@@ -798,7 +868,8 @@ static int aic_priv_cmd_rdwr_pwrlvl (struct rwnx_hw *rwnx_hw, int argc, char *ar
 	}
 }
 
-static int aic_priv_cmd_rdwr_pwrofst (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_pwrofst(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	u8_l func = 0;
 	int res_len = 0;
@@ -817,19 +888,28 @@ static int aic_priv_cmd_rdwr_pwrofst (struct rwnx_hw *rwnx_hw, int argc, char *a
 	if (func == 0) { // read cur
 		rwnx_send_rftest_req(rwnx_hw, RDWR_PWROFST, 0, NULL, &cfm);
 	} else if (func <= 4) { // write 2.4g/5g pwr ofst and ant0/1
-		if ((argc > 4) && ((dev->chip_id == PRODUCT_ID_AIC8800D80) || (dev->chip_id == PRODUCT_ID_AIC8800D80X2))) {
+		if ((argc > 4) && ((dev->chip_id == PRODUCT_ID_AIC8800D80) ||
+				   (dev->chip_id == PRODUCT_ID_AIC8800D80X2))) {
 			u8_l type = (u8_l)command_strtoul(argv[2], NULL, 16);
 			u8_l chgrp = (u8_l)command_strtoul(argv[3], NULL, 16);
 			s8_l pwrofst = (u8_l)command_strtoul(argv[4], NULL, 10);
-			u8_l buf[4] = {func, type, chgrp, (u8_l)pwrofst};
-			AICWFDBG(LOGINFO, "set pwrofst_%s:[%x][%x]=%d\r\n", (func == 1) ? "2.4g" : "5g", type, chgrp, pwrofst);
-			rwnx_send_rftest_req(rwnx_hw, RDWR_PWROFST, sizeof(buf), buf, &cfm);
-		} else if ((argc > 3) && ((dev->chip_id == PRODUCT_ID_AIC8801) || (dev->chip_id == PRODUCT_ID_AIC8800DW) || (dev->chip_id == PRODUCT_ID_AIC8800DC))) {
+			u8_l buf[4] = { func, type, chgrp, (u8_l)pwrofst };
+			AICWFDBG(LOGINFO, "set pwrofst_%s:[%x][%x]=%d\r\n",
+				 (func == 1) ? "2.4g" : "5g", type, chgrp,
+				 pwrofst);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_PWROFST, sizeof(buf),
+					     buf, &cfm);
+		} else if ((argc > 3) &&
+			   ((dev->chip_id == PRODUCT_ID_AIC8801) ||
+			    (dev->chip_id == PRODUCT_ID_AIC8800DW) ||
+			    (dev->chip_id == PRODUCT_ID_AIC8800DC))) {
 			u8_l chgrp = (u8_l)command_strtoul(argv[2], NULL, 16);
 			s8_l pwrofst = (u8_l)command_strtoul(argv[3], NULL, 10);
-			u8_l buf[3] = {func, chgrp, (u8_l)pwrofst};
-			AICWFDBG(LOGINFO, "set pwrofst_%s:[%x]=%d\r\n", (func == 1) ? "2.4g" : "5g", chgrp, pwrofst);
-			rwnx_send_rftest_req(rwnx_hw, RDWR_PWROFST, sizeof(buf), buf, &cfm);
+			u8_l buf[3] = { func, chgrp, (u8_l)pwrofst };
+			AICWFDBG(LOGINFO, "set pwrofst_%s:[%x]=%d\r\n",
+				 (func == 1) ? "2.4g" : "5g", chgrp, pwrofst);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_PWROFST, sizeof(buf),
+					     buf, &cfm);
 		} else {
 			return -EINVAL;
 		}
@@ -837,12 +917,14 @@ static int aic_priv_cmd_rdwr_pwrofst (struct rwnx_hw *rwnx_hw, int argc, char *a
 		AICWFDBG(LOGERROR, "wrong func: %x\n", func);
 		return -EINVAL;
 	}
-	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) || (dev->chip_id == PRODUCT_ID_AIC8800DW)) { // 3 = 3 (2.4g)
+	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) ||
+	    (dev->chip_id == PRODUCT_ID_AIC8800DW)) { // 3 = 3 (2.4g)
 		res_len = 3;
-	} else if (dev->chip_id == PRODUCT_ID_AIC8800D80) { // 3 * 2 (2.4g) + 3 * 6 (5g)
+	} else if (dev->chip_id ==
+		   PRODUCT_ID_AIC8800D80) { // 3 * 2 (2.4g) + 3 * 6 (5g)
 		res_len = 3 * 3 + 3 * 6;
 	} else if (dev->chip_id == PRODUCT_ID_AIC8800D80X2) { // ant0/1
-		res_len = ( 3 * 3 + 3 * 6 ) * 2;
+		res_len = (3 * 3 + 3 * 6) * 2;
 	} else {
 		res_len = 3 + 4;
 	}
@@ -850,7 +932,8 @@ static int aic_priv_cmd_rdwr_pwrofst (struct rwnx_hw *rwnx_hw, int argc, char *a
 	return res_len;
 }
 
-static int aic_priv_cmd_rdwr_pwrofstfine (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_pwrofstfine(struct rwnx_hw *rwnx_hw, int argc,
+					 char *argv[], char *command)
 {
 	u8_l func = 0;
 
@@ -863,24 +946,25 @@ static int aic_priv_cmd_rdwr_pwrofstfine (struct rwnx_hw *rwnx_hw, int argc, cha
 		if (argc > 3) {
 			u8_l chgrp = (u8_l)command_strtoul(argv[2], NULL, 16);
 			s8_l pwrofst = (u8_l)command_strtoul(argv[3], NULL, 10);
-			u8_l buf[3] = {func, chgrp, (u8_l)pwrofst};
-			AICWFDBG(LOGINFO, "set pwrofstfine:[%x][%x]=%d\r\n", func, chgrp, pwrofst);
-			rwnx_send_rftest_req(rwnx_hw, RDWR_PWROFSTFINE, sizeof(buf), buf, &cfm);
+			u8_l buf[3] = { func, chgrp, (u8_l)pwrofst };
+			AICWFDBG(LOGINFO, "set pwrofstfine:[%x][%x]=%d\r\n",
+				 func, chgrp, pwrofst);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_PWROFSTFINE,
+					     sizeof(buf), buf, &cfm);
 		} else {
 			AICWFDBG(LOGERROR, "wrong args\n");
 			return -EINVAL;
-
 		}
 	} else {
 		AICWFDBG(LOGERROR, "wrong func: %x\n", func);
 		return -EINVAL;
-
 	}
 	memcpy(command, &cfm.rftest_result[0], 7);
 	return 7;
 }
 
-static int aic_priv_cmd_rdwr_drvibit (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_drvibit(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	u8_l func = 0;
 
@@ -892,9 +976,11 @@ static int aic_priv_cmd_rdwr_drvibit (struct rwnx_hw *rwnx_hw, int argc, char *a
 	} else if (func == 1) { // write 2.4g pa drv_ibit
 		if (argc > 2) {
 			u8_l ibit = (u8_l)command_strtoul(argv[2], NULL, 16);
-			u8_l buf[2] = {func, ibit};
-			AICWFDBG(LOGINFO, "set drvibit:[%x]=%x\r\n", func, ibit);
-			rwnx_send_rftest_req(rwnx_hw, RDWR_DRVIBIT, sizeof(buf), buf, &cfm);
+			u8_l buf[2] = { func, ibit };
+			AICWFDBG(LOGINFO, "set drvibit:[%x]=%x\r\n", func,
+				 ibit);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_DRVIBIT, sizeof(buf),
+					     buf, &cfm);
 		} else {
 			AICWFDBG(LOGERROR, "wrong args\n");
 			return -EINVAL;
@@ -907,7 +993,8 @@ static int aic_priv_cmd_rdwr_drvibit (struct rwnx_hw *rwnx_hw, int argc, char *a
 	return 16;
 }
 
-static int aic_priv_cmd_rdwr_efuse_pwrofst (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_efuse_pwrofst(struct rwnx_hw *rwnx_hw, int argc,
+					   char *argv[], char *command)
 {
 	u8_l func = 0;
 	int res_len = 0;
@@ -924,21 +1011,32 @@ static int aic_priv_cmd_rdwr_efuse_pwrofst (struct rwnx_hw *rwnx_hw, int argc, c
 		func = (u8_l)command_strtoul(argv[1], NULL, 16);
 	}
 	if (func == 0) { // read cur
-		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_PWROFST, 0, NULL, &cfm);
+		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_PWROFST, 0, NULL,
+				     &cfm);
 	} else if (func <= 4) { // write 2.4g/5g pwr ofst and ant0/1
-		if ((argc > 4) && ((dev->chip_id == PRODUCT_ID_AIC8800D80) || (dev->chip_id == PRODUCT_ID_AIC8800D80X2))) {
+		if ((argc > 4) && ((dev->chip_id == PRODUCT_ID_AIC8800D80) ||
+				   (dev->chip_id == PRODUCT_ID_AIC8800D80X2))) {
 			u8_l type = (u8_l)command_strtoul(argv[2], NULL, 16);
 			u8_l chgrp = (u8_l)command_strtoul(argv[3], NULL, 16);
 			s8_l pwrofst = (u8_l)command_strtoul(argv[4], NULL, 10);
-			u8_l buf[4] = {func, type, chgrp, (u8_l)pwrofst};
-			AICWFDBG(LOGINFO, "set efuse pwrofst_%s:[%x][%x]=%d\r\n", (func == 1) ? "2.4g" : "5g", type, chgrp, pwrofst);
-			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_PWROFST, sizeof(buf), buf, &cfm);
-		} else if ((argc > 3) && ((dev->chip_id == PRODUCT_ID_AIC8801) || (dev->chip_id == PRODUCT_ID_AIC8800DW) || (dev->chip_id == PRODUCT_ID_AIC8800DC))) {
+			u8_l buf[4] = { func, type, chgrp, (u8_l)pwrofst };
+			AICWFDBG(LOGINFO,
+				 "set efuse pwrofst_%s:[%x][%x]=%d\r\n",
+				 (func == 1) ? "2.4g" : "5g", type, chgrp,
+				 pwrofst);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_PWROFST,
+					     sizeof(buf), buf, &cfm);
+		} else if ((argc > 3) &&
+			   ((dev->chip_id == PRODUCT_ID_AIC8801) ||
+			    (dev->chip_id == PRODUCT_ID_AIC8800DW) ||
+			    (dev->chip_id == PRODUCT_ID_AIC8800DC))) {
 			u8_l chgrp = (u8_l)command_strtoul(argv[2], NULL, 16);
 			s8_l pwrofst = (u8_l)command_strtoul(argv[3], NULL, 10);
-			u8_l buf[3] = {func, chgrp, (u8_l)pwrofst};
-			AICWFDBG(LOGINFO, "set efuse pwrofst_%s:[%x]=%d\r\n", (func == 1) ? "2.4g" : "5g", chgrp, pwrofst);
-			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_PWROFST, sizeof(buf), buf, &cfm);
+			u8_l buf[3] = { func, chgrp, (u8_l)pwrofst };
+			AICWFDBG(LOGINFO, "set efuse pwrofst_%s:[%x]=%d\r\n",
+				 (func == 1) ? "2.4g" : "5g", chgrp, pwrofst);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_PWROFST,
+					     sizeof(buf), buf, &cfm);
 		} else {
 			AICWFDBG(LOGERROR, "wrong args\n");
 			return -EINVAL;
@@ -947,9 +1045,12 @@ static int aic_priv_cmd_rdwr_efuse_pwrofst (struct rwnx_hw *rwnx_hw, int argc, c
 		AICWFDBG(LOGERROR, "wrong func: %x\n", func);
 		return -EINVAL;
 	}
-	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) || (dev->chip_id == PRODUCT_ID_AIC8800DW)) { // 6 = 3 (2.4g) * 2
+	if ((dev->chip_id == PRODUCT_ID_AIC8800DC) ||
+	    (dev->chip_id == PRODUCT_ID_AIC8800DW)) { // 6 = 3 (2.4g) * 2
 		res_len = 3 * 2;
-	} else if ((dev->chip_id == PRODUCT_ID_AIC8800D80) || (dev->chip_id == PRODUCT_ID_AIC8800D80X2)) { // 3 * 2 (2.4g) + 3 * 6 (5g)
+	} else if ((dev->chip_id == PRODUCT_ID_AIC8800D80) ||
+		   (dev->chip_id ==
+		    PRODUCT_ID_AIC8800D80X2)) { // 3 * 2 (2.4g) + 3 * 6 (5g)
 		res_len = (3 * 3 + 3 * 6) * 2;
 	} else { // 7 = 3(2.4g) + 4(5g)
 		res_len = 3 + 4;
@@ -958,7 +1059,9 @@ static int aic_priv_cmd_rdwr_efuse_pwrofst (struct rwnx_hw *rwnx_hw, int argc, c
 	return res_len;
 }
 
-static int aic_priv_cmd_rdwr_efuse_pwrofstfine (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_efuse_pwrofstfine(struct rwnx_hw *rwnx_hw,
+					       int argc, char *argv[],
+					       char *command)
 {
 	u8_l func = 0;
 
@@ -966,14 +1069,17 @@ static int aic_priv_cmd_rdwr_efuse_pwrofstfine (struct rwnx_hw *rwnx_hw, int arg
 		func = (u8_l)command_strtoul(argv[1], NULL, 16);
 	}
 	if (func == 0) { // read cur
-		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_PWROFSTFINE, 0, NULL, &cfm);
+		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_PWROFSTFINE, 0, NULL,
+				     &cfm);
 	} else if (func <= 2) { // write 2.4g/5g pwr ofst
 		if (argc > 3) {
 			u8_l chgrp = (u8_l)command_strtoul(argv[2], NULL, 16);
 			s8_l pwrofst = (u8_l)command_strtoul(argv[3], NULL, 10);
-			u8_l buf[3] = {func, chgrp, (u8_l)pwrofst};
-			AICWFDBG(LOGINFO, "set pwrofstfine:[%x][%x]=%d\r\n", func, chgrp, pwrofst);
-			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_PWROFSTFINE, sizeof(buf), buf, &cfm);
+			u8_l buf[3] = { func, chgrp, (u8_l)pwrofst };
+			AICWFDBG(LOGINFO, "set pwrofstfine:[%x][%x]=%d\r\n",
+				 func, chgrp, pwrofst);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_PWROFSTFINE,
+					     sizeof(buf), buf, &cfm);
 		} else {
 			AICWFDBG(LOGERROR, "wrong args\n");
 			return -EINVAL;
@@ -986,7 +1092,8 @@ static int aic_priv_cmd_rdwr_efuse_pwrofstfine (struct rwnx_hw *rwnx_hw, int arg
 	return 7;
 }
 
-static int aic_priv_cmd_rdwr_efuse_drvibit (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_efuse_drvibit(struct rwnx_hw *rwnx_hw, int argc,
+					   char *argv[], char *command)
 {
 	u8_l func = 0;
 
@@ -994,13 +1101,16 @@ static int aic_priv_cmd_rdwr_efuse_drvibit (struct rwnx_hw *rwnx_hw, int argc, c
 		func = (u8_l)command_strtoul(argv[1], NULL, 16);
 	}
 	if (func == 0) { // read cur
-		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_DRVIBIT, 0, NULL, &cfm);
+		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_DRVIBIT, 0, NULL,
+				     &cfm);
 	} else if (func == 1) { // write 2.4g pa drv_ibit
 		if (argc > 2) {
-		u8_l ibit = (u8_l)command_strtoul(argv[2], NULL, 16);
-		u8_l buf[2] = {func, ibit};
-		AICWFDBG(LOGINFO, "set efuse drvibit:[%x]=%x\r\n", func, ibit);
-		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_DRVIBIT, sizeof(buf), buf, &cfm);
+			u8_l ibit = (u8_l)command_strtoul(argv[2], NULL, 16);
+			u8_l buf[2] = { func, ibit };
+			AICWFDBG(LOGINFO, "set efuse drvibit:[%x]=%x\r\n", func,
+				 ibit);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_DRVIBIT,
+					     sizeof(buf), buf, &cfm);
 		} else {
 			AICWFDBG(LOGERROR, "wrong args\n");
 			return -EINVAL;
@@ -1013,7 +1123,8 @@ static int aic_priv_cmd_rdwr_efuse_drvibit (struct rwnx_hw *rwnx_hw, int argc, c
 	return 4;
 }
 
-static int aic_priv_cmd_rdwr_efuse_usrdata (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_efuse_usrdata(struct rwnx_hw *rwnx_hw, int argc,
+					   char *argv[], char *command)
 {
 	cmd_ef_usrdata_t cmd_ef_usrdata;
 
@@ -1026,19 +1137,24 @@ static int aic_priv_cmd_rdwr_efuse_usrdata (struct rwnx_hw *rwnx_hw, int argc, c
 		if (cmd_ef_usrdata.func == 1) {
 			int idx;
 			for (idx = 0; idx < cmd_ef_usrdata.cnt; idx++) {
-				cmd_ef_usrdata.usrdata[idx] = (u32_l)command_strtoul(argv[3 + idx], NULL, 16);
+				cmd_ef_usrdata.usrdata[idx] =
+					(u32_l)command_strtoul(argv[3 + idx],
+							       NULL, 16);
 			}
 		}
 	} else {
 		AICWFDBG(LOGERROR, "wrong argc: %x\n", argc);
 		return -EINVAL;
 	}
-	rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_USRDATA, sizeof(cmd_ef_usrdata), (u8_l *)&cmd_ef_usrdata, &cfm);
+	rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_USRDATA,
+			     sizeof(cmd_ef_usrdata), (u8_l *)&cmd_ef_usrdata,
+			     &cfm);
 	memcpy(command, &cfm.rftest_result[0], 12);
 	return 12;
 }
 
-static int aic_priv_cmd_rdwr_efuse_sdiocfg (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_efuse_sdiocfg(struct rwnx_hw *rwnx_hw, int argc,
+					   char *argv[], char *command)
 {
 	u8_l func = 0;
 
@@ -1046,13 +1162,16 @@ static int aic_priv_cmd_rdwr_efuse_sdiocfg (struct rwnx_hw *rwnx_hw, int argc, c
 		func = (u8_l)command_strtoul(argv[1], NULL, 16);
 	}
 	if (func == 0) { // read cur
-		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_SDIOCFG, 0, NULL, &cfm);
+		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_SDIOCFG, 0, NULL,
+				     &cfm);
 	} else if (func == 1) { // write sdiocfg
 		if (argc > 2) {
 			u8_l ibit = (u8_l)command_strtoul(argv[2], NULL, 16);
-			u8_l buf[2] = {func, ibit};
-			AICWFDBG(LOGINFO, "set efuse sdiocfg:[%x]=%x\r\n", func, ibit);
-			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_SDIOCFG, sizeof(buf), buf, &cfm);
+			u8_l buf[2] = { func, ibit };
+			AICWFDBG(LOGINFO, "set efuse sdiocfg:[%x]=%x\r\n", func,
+				 ibit);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_SDIOCFG,
+					     sizeof(buf), buf, &cfm);
 		} else {
 			AICWFDBG(LOGERROR, "wrong args\n");
 			return -EINVAL;
@@ -1065,7 +1184,8 @@ static int aic_priv_cmd_rdwr_efuse_sdiocfg (struct rwnx_hw *rwnx_hw, int argc, c
 	return 4;
 }
 
-static int aic_priv_cmd_rdwr_efuse_usbvidpid (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_efuse_usbvidpid(struct rwnx_hw *rwnx_hw, int argc,
+					     char *argv[], char *command)
 {
 	u8_l func = 0;
 	AICWFDBG(LOGINFO, "read/write usb vid/pid into efuse\n");
@@ -1073,13 +1193,19 @@ static int aic_priv_cmd_rdwr_efuse_usbvidpid (struct rwnx_hw *rwnx_hw, int argc,
 		func = (u8_l)command_strtoul(argv[1], NULL, 16);
 	}
 	if (func == 0) { // read cur
-		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_USBVIDPID, 0, NULL, &cfm);
+		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_USBVIDPID, 0, NULL,
+				     &cfm);
 	} else if (func == 1) { // write USB vid+pid
 		if (argc > 2) {
-			u32_l usb_id = (u32_l)command_strtoul(argv[2], NULL, 16);
-			u8_l buf[5] = {func, (u8_l)usb_id, (u8_l)(usb_id >> 8), (u8_l)(usb_id >> 16), (u8_l)(usb_id >> 24)};
-			AICWFDBG(LOGINFO, "set efuse usb vid/pid:[%x]=%x\r\n", func, usb_id);
-			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_USBVIDPID, sizeof(buf), buf, &cfm);
+			u32_l usb_id =
+				(u32_l)command_strtoul(argv[2], NULL, 16);
+			u8_l buf[5] = { func, (u8_l)usb_id, (u8_l)(usb_id >> 8),
+					(u8_l)(usb_id >> 16),
+					(u8_l)(usb_id >> 24) };
+			AICWFDBG(LOGINFO, "set efuse usb vid/pid:[%x]=%x\r\n",
+				 func, usb_id);
+			rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_USBVIDPID,
+					     sizeof(buf), buf, &cfm);
 		} else {
 			AICWFDBG(LOGERROR, "wrong args\n");
 			return -EINVAL;
@@ -1092,14 +1218,16 @@ static int aic_priv_cmd_rdwr_efuse_usbvidpid (struct rwnx_hw *rwnx_hw, int argc,
 	return 4;
 }
 
-static int aic_priv_cmd_rdwr_efuse_he_off (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_efuse_he_off(struct rwnx_hw *rwnx_hw, int argc,
+					  char *argv[], char *command)
 {
 	u8_l func = 0;
 
 	func = command_strtoul(argv[1], NULL, 10);
 	AICWFDBG(LOGINFO, "set he off: %d\n", func);
-	if(func == 1 || func == 0) {
-		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_HE_OFF, sizeof(func), (u8_l *)&func, &cfm);
+	if (func == 1 || func == 0) {
+		rwnx_send_rftest_req(rwnx_hw, RDWR_EFUSE_HE_OFF, sizeof(func),
+				     (u8_l *)&func, &cfm);
 		AICWFDBG(LOGINFO, "he_off cfm: %lld\n", cfm.rftest_result[0]);
 		memcpy(command, &cfm.rftest_result[0], 4);
 		return 4;
@@ -1107,21 +1235,26 @@ static int aic_priv_cmd_rdwr_efuse_he_off (struct rwnx_hw *rwnx_hw, int argc, ch
 	return 0;
 }
 
-static int aic_priv_cmd_set_cal_xtal (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_cal_xtal(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	rwnx_send_rftest_req(rwnx_hw, SET_CAL_XTAL, 0, NULL, NULL);
 	return 0;
 }
 
-static int aic_priv_cmd_get_cal_xtal_res (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_get_cal_xtal_res(struct rwnx_hw *rwnx_hw, int argc,
+					 char *argv[], char *command)
 {
 	rwnx_send_rftest_req(rwnx_hw, GET_CAL_XTAL_RES, 0, NULL, &cfm);
 	memcpy(command, &cfm.rftest_result[0], 4);
-	AICWFDBG(LOGINFO, "cap=0x%llx, cap_fine=0x%llx\n", cfm.rftest_result[0] & 0x0000ffff, (cfm.rftest_result[0] >> 16) & 0x0000ffff);
+	AICWFDBG(LOGINFO, "cap=0x%llx, cap_fine=0x%llx\n",
+		 cfm.rftest_result[0] & 0x0000ffff,
+		 (cfm.rftest_result[0] >> 16) & 0x0000ffff);
 	return 4;
 }
 
-static int aic_priv_cmd_set_cob_cal (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_cob_cal(struct rwnx_hw *rwnx_hw, int argc,
+				    char *argv[], char *command)
 {
 	cmd_rf_setcobcal_t setcob_cal;
 
@@ -1130,24 +1263,33 @@ static int aic_priv_cmd_set_cob_cal (struct rwnx_hw *rwnx_hw, int argc, char *ar
 	setcob_cal.dutid = command_strtoul(argv[1], NULL, 10);
 	setcob_cal.chip_num = command_strtoul(argv[2], NULL, 10);
 	setcob_cal.dis_xtal = command_strtoul(argv[3], NULL, 10);
-	rwnx_send_rftest_req(rwnx_hw, SET_COB_CAL, sizeof(cmd_rf_setcobcal_t), (u8_l *)&setcob_cal, NULL);
+	rwnx_send_rftest_req(rwnx_hw, SET_COB_CAL, sizeof(cmd_rf_setcobcal_t),
+			     (u8_l *)&setcob_cal, NULL);
 	return 0;
 }
 
-static int aic_priv_cmd_get_cob_cal_res (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_get_cob_cal_res(struct rwnx_hw *rwnx_hw, int argc,
+					char *argv[], char *command)
 {
 	u8_l state;
 	cob_result_ptr_t *cob_result_ptr;
 
 	rwnx_send_rftest_req(rwnx_hw, GET_COB_CAL_RES, 0, NULL, &cfm);
 	state = (cfm.rftest_result[0] >> 16) & 0x000000ff;
-	if (!state){
-		AICWFDBG(LOGINFO, "cap= 0x%llx, cap_fine= 0x%llx, freq_ofst= %lld Hz\n",
-		cfm.rftest_result[0] & 0x000000ff, (cfm.rftest_result[0] >> 8) & 0x000000ff, cfm.rftest_result[1]);
-		cob_result_ptr = (cob_result_ptr_t *) & (cfm.rftest_result[2]);
-		AICWFDBG(LOGINFO, "golden_rcv_dut= %d , tx_rssi= %d dBm, snr = %d dB\ndut_rcv_godlden= %d , rx_rssi= %d dBm",
-		cob_result_ptr->golden_rcv_dut_num, cob_result_ptr->rssi_static, cob_result_ptr->snr_static,
-		cob_result_ptr->dut_rcv_golden_num, cob_result_ptr->dut_rssi_static);
+	if (!state) {
+		AICWFDBG(LOGINFO,
+			 "cap= 0x%llx, cap_fine= 0x%llx, freq_ofst= %lld Hz\n",
+			 cfm.rftest_result[0] & 0x000000ff,
+			 (cfm.rftest_result[0] >> 8) & 0x000000ff,
+			 cfm.rftest_result[1]);
+		cob_result_ptr = (cob_result_ptr_t *)&(cfm.rftest_result[2]);
+		AICWFDBG(
+			LOGINFO,
+			"golden_rcv_dut= %d , tx_rssi= %d dBm, snr = %d dB\ndut_rcv_godlden= %d , rx_rssi= %d dBm",
+			cob_result_ptr->golden_rcv_dut_num,
+			cob_result_ptr->rssi_static, cob_result_ptr->snr_static,
+			cob_result_ptr->dut_rcv_golden_num,
+			cob_result_ptr->dut_rssi_static);
 		memcpy(command, &cfm.rftest_result, 16);
 		return 16;
 	} else {
@@ -1156,7 +1298,8 @@ static int aic_priv_cmd_get_cob_cal_res (struct rwnx_hw *rwnx_hw, int argc, char
 	}
 }
 
-static int aic_priv_cmd_do_cob_test (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_do_cob_test(struct rwnx_hw *rwnx_hw, int argc,
+				    char *argv[], char *command)
 {
 	u8_l state;
 	cmd_rf_setcobcal_t setcob_cal;
@@ -1167,17 +1310,25 @@ static int aic_priv_cmd_do_cob_test (struct rwnx_hw *rwnx_hw, int argc, char *ar
 	setcob_cal.dis_xtal = 0;
 	if (argc > 1)
 		setcob_cal.dis_xtal = command_strtoul(argv[1], NULL, 10);
-	rwnx_send_rftest_req(rwnx_hw, SET_COB_CAL, sizeof(cmd_rf_setcobcal_t), (u8_l *)&setcob_cal, NULL);
+	rwnx_send_rftest_req(rwnx_hw, SET_COB_CAL, sizeof(cmd_rf_setcobcal_t),
+			     (u8_l *)&setcob_cal, NULL);
 	msleep(2000);
 	rwnx_send_rftest_req(rwnx_hw, GET_COB_CAL_RES, 0, NULL, &cfm);
 	state = (cfm.rftest_result[0] >> 16) & 0x000000ff;
-	if (!state){
-		AICWFDBG(LOGINFO, "cap= 0x%llx, cap_fine= 0x%llx, freq_ofst= %lld Hz\n",
-		cfm.rftest_result[0] & 0x000000ff, (cfm.rftest_result[0] >> 8) & 0x000000ff, cfm.rftest_result[1]);
-		cob_result_ptr = (cob_result_ptr_t *) & (cfm.rftest_result[2]);
-		AICWFDBG(LOGINFO, "golden_rcv_dut= %d , tx_rssi= %d dBm, snr = %d dB\ndut_rcv_godlden= %d , rx_rssi= %d dBm",
-		cob_result_ptr->golden_rcv_dut_num, cob_result_ptr->rssi_static, cob_result_ptr->snr_static,
-		cob_result_ptr->dut_rcv_golden_num, cob_result_ptr->dut_rssi_static);
+	if (!state) {
+		AICWFDBG(LOGINFO,
+			 "cap= 0x%llx, cap_fine= 0x%llx, freq_ofst= %lld Hz\n",
+			 cfm.rftest_result[0] & 0x000000ff,
+			 (cfm.rftest_result[0] >> 8) & 0x000000ff,
+			 cfm.rftest_result[1]);
+		cob_result_ptr = (cob_result_ptr_t *)&(cfm.rftest_result[2]);
+		AICWFDBG(
+			LOGINFO,
+			"golden_rcv_dut= %d , tx_rssi= %d dBm, snr = %d dB\ndut_rcv_godlden= %d , rx_rssi= %d dBm",
+			cob_result_ptr->golden_rcv_dut_num,
+			cob_result_ptr->rssi_static, cob_result_ptr->snr_static,
+			cob_result_ptr->dut_rcv_golden_num,
+			cob_result_ptr->dut_rssi_static);
 		memcpy(command, &cfm.rftest_result, 16);
 		return 16;
 	} else {
@@ -1186,65 +1337,75 @@ static int aic_priv_cmd_do_cob_test (struct rwnx_hw *rwnx_hw, int argc, char *ar
 	}
 }
 
-static int aic_priv_cmd_set_papr (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_papr(struct rwnx_hw *rwnx_hw, int argc,
+				 char *argv[], char *command)
 {
 	u8_l func = 0;
 	if (argc > 1) {
 		func = command_strtoul(argv[1], NULL, 10);
 		AICWFDBG(LOGINFO, "papr %d\r\n", func);
-		rwnx_send_rftest_req(rwnx_hw, SET_PAPR, sizeof(func), (u8_l *)&func, NULL);
+		rwnx_send_rftest_req(rwnx_hw, SET_PAPR, sizeof(func),
+				     (u8_l *)&func, NULL);
 	} else {
 		return -EINVAL;
 	}
 	return 0;
 }
 
-static int aic_priv_cmd_set_notch (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_notch(struct rwnx_hw *rwnx_hw, int argc,
+				  char *argv[], char *command)
 {
 	u8_l func = 0;
 	if (argc > 1) {
 		func = command_strtoul(argv[1], NULL, 10);
 		AICWFDBG(LOGINFO, "notch %d\r\n", func);
-		rwnx_send_rftest_req(rwnx_hw, SET_NOTCH, sizeof(func), (u8_l *)&func, NULL);
+		rwnx_send_rftest_req(rwnx_hw, SET_NOTCH, sizeof(func),
+				     (u8_l *)&func, NULL);
 	} else {
 		return -EINVAL;
 	}
 	return 0;
 }
 
-static int aic_priv_cmd_set_srrc (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_srrc(struct rwnx_hw *rwnx_hw, int argc,
+				 char *argv[], char *command)
 {
 	u8_l func = 0;
 	if (argc > 1) {
 		func = command_strtoul(argv[1], NULL, 10);
 		AICWFDBG(LOGINFO, "srrc %d\r\n", func);
-		rwnx_send_rftest_req(rwnx_hw, SET_SRRC, sizeof(func), (u8_l *)&func, NULL);
+		rwnx_send_rftest_req(rwnx_hw, SET_SRRC, sizeof(func),
+				     (u8_l *)&func, NULL);
 	} else {
 		return -EINVAL;
 	}
 	return 0;
 }
 
-static int aic_priv_cmd_set_fss (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_fss(struct rwnx_hw *rwnx_hw, int argc, char *argv[],
+				char *command)
 {
 	u8_l func = 0;
 	if (argc > 1) {
 		func = command_strtoul(argv[1], NULL, 10);
 		AICWFDBG(LOGINFO, "fss %d\r\n", func);
-		rwnx_send_rftest_req(rwnx_hw, SET_FSS, sizeof(func), (u8_l *)&func, NULL);
+		rwnx_send_rftest_req(rwnx_hw, SET_FSS, sizeof(func),
+				     (u8_l *)&func, NULL);
 	} else {
 		return -EINVAL;
 	}
 	return 0;
 }
 
-static int aic_priv_cmd_set_usb_off (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_usb_off(struct rwnx_hw *rwnx_hw, int argc,
+				    char *argv[], char *command)
 {
 	rwnx_send_rftest_req(rwnx_hw, SET_USB_OFF, 0, NULL, NULL);
 	return 0;
 }
 
-static int aic_priv_cmd_set_pll_test (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_pll_test(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	u8_l func = 0, tx_pwr = 0xc;
 	s8_l freq = 0;
@@ -1257,9 +1418,11 @@ static int aic_priv_cmd_set_pll_test (struct rwnx_hw *rwnx_hw, int argc, char *a
 		tx_pwr = command_strtoul(argv[3], NULL, 16);
 	}
 	if (func <= 1) {
-		u8_l buf[3] = {func, (u8_l)freq, tx_pwr};
-		AICWFDBG(LOGINFO, "set pll_test %d: freq=%d, tx_pwr=0x%x\n", func, freq, tx_pwr);
-		rwnx_send_rftest_req(rwnx_hw, SET_PLL_TEST, sizeof(buf), buf, &cfm);
+		u8_l buf[3] = { func, (u8_l)freq, tx_pwr };
+		AICWFDBG(LOGINFO, "set pll_test %d: freq=%d, tx_pwr=0x%x\n",
+			 func, freq, tx_pwr);
+		rwnx_send_rftest_req(rwnx_hw, SET_PLL_TEST, sizeof(buf), buf,
+				     &cfm);
 	} else {
 		AICWFDBG(LOGERROR, "wrong func: %x\n", func);
 		return -EINVAL;
@@ -1267,15 +1430,17 @@ static int aic_priv_cmd_set_pll_test (struct rwnx_hw *rwnx_hw, int argc, char *a
 	return 0;
 }
 
-static int aic_priv_cmd_get_txpwr(struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_get_txpwr(struct rwnx_hw *rwnx_hw, int argc,
+				  char *argv[], char *command)
 {
-	s8_l power=0;
+	s8_l power = 0;
 	power = get_txpwr_max(power);
 	memcpy(command, &power, 1);
 	return 1;
 }
 
-static int aic_priv_cmd_set_txpwr_loss(struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_txpwr_loss(struct rwnx_hw *rwnx_hw, int argc,
+				       char *argv[], char *command)
 {
 #ifdef AICWF_SDIO_SUPPORT
 	struct aic_sdio_dev *dev = g_rwnx_plat->sdiodev;
@@ -1290,14 +1455,16 @@ static int aic_priv_cmd_set_txpwr_loss(struct rwnx_hw *rwnx_hw, int argc, char *
 	if (argc > 1) {
 		func = (s8_l)command_strtoul(argv[1], NULL, 10);
 		printk("set txpwr loss: %d\n", func);
-		if (dev->chip_id == PRODUCT_ID_AIC8800D80 || dev->chip_id == PRODUCT_ID_AIC8800D80X2){
+		if (dev->chip_id == PRODUCT_ID_AIC8800D80 ||
+		    dev->chip_id == PRODUCT_ID_AIC8800D80X2) {
 			set_txpwr_loss_ofst(func);
 			rwnx_send_txpwr_lvl_v3_req(dev->rwnx_hw);
-		}else if(dev->chip_id == PRODUCT_ID_AIC8800DC || dev->chip_id == PRODUCT_ID_AIC8800DW){
+		} else if (dev->chip_id == PRODUCT_ID_AIC8800DC ||
+			   dev->chip_id == PRODUCT_ID_AIC8800DW) {
 			set_txpwr_loss_ofst(func);
 			rwnx_send_txpwr_lvl_req(dev->rwnx_hw);
-		}else{
-			AICWFDBG(LOGINFO,"error:don't support 8800D");
+		} else {
+			AICWFDBG(LOGINFO, "error:don't support 8800D");
 		}
 	} else {
 		printk("wrong args\n");
@@ -1306,20 +1473,23 @@ static int aic_priv_cmd_set_txpwr_loss(struct rwnx_hw *rwnx_hw, int argc, char *
 	return 0;
 }
 
-static int aic_priv_cmd_set_ant_mode (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_set_ant_mode(struct rwnx_hw *rwnx_hw, int argc,
+				     char *argv[], char *command)
 {
 	u8_l func = 0;
 	if (argc > 1) {
 		func = command_strtoul(argv[1], NULL, 10);
 		AICWFDBG(LOGINFO, "ant %d\r\n", func);
-		rwnx_send_rftest_req(rwnx_hw, SET_ANT_MODE, sizeof(func), (u8_l *)&func, NULL);
+		rwnx_send_rftest_req(rwnx_hw, SET_ANT_MODE, sizeof(func),
+				     (u8_l *)&func, NULL);
 	} else {
 		return -EINVAL;
 	}
 	return 0;
 }
 
-static int aic_priv_cmd_rdwr_bt_efuse_pwrofst (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_rdwr_bt_efuse_pwrofst(struct rwnx_hw *rwnx_hw, int argc,
+					      char *argv[], char *command)
 {
 	u8_l func = 0;
 	if (argc == 1) {
@@ -1328,16 +1498,21 @@ static int aic_priv_cmd_rdwr_bt_efuse_pwrofst (struct rwnx_hw *rwnx_hw, int argc
 		func = 1;
 	}
 	if (func == 0) { // read cur
-		rwnx_send_rftest_req(rwnx_hw, RDWR_BT_EFUSE_PWROFST, 0, NULL, &cfm);
+		rwnx_send_rftest_req(rwnx_hw, RDWR_BT_EFUSE_PWROFST, 0, NULL,
+				     &cfm);
 	} else if (func == 1) { // write bt tx pwrofst
-			int8_t bt_txpwrofst = command_strtoul(argv[1], NULL, 10);
-			AICWFDBG(LOGINFO, "set bt efuse pwrofst %d\r\n",bt_txpwrofst);
-			if (bt_txpwrofst < -7 ||  bt_txpwrofst > 7) {
-				AICWFDBG(LOGERROR, "wrong params %d,  pwrofst limit -7 ~ 7\n", bt_txpwrofst);
-				return -EINVAL;
-			} else {
-				rwnx_send_rftest_req(rwnx_hw, RDWR_BT_EFUSE_PWROFST, sizeof(bt_txpwrofst), &bt_txpwrofst, &cfm);
-			}
+		int8_t bt_txpwrofst = command_strtoul(argv[1], NULL, 10);
+		AICWFDBG(LOGINFO, "set bt efuse pwrofst %d\r\n", bt_txpwrofst);
+		if (bt_txpwrofst < -7 || bt_txpwrofst > 7) {
+			AICWFDBG(LOGERROR,
+				 "wrong params %d,  pwrofst limit -7 ~ 7\n",
+				 bt_txpwrofst);
+			return -EINVAL;
+		} else {
+			rwnx_send_rftest_req(rwnx_hw, RDWR_BT_EFUSE_PWROFST,
+					     sizeof(bt_txpwrofst),
+					     &bt_txpwrofst, &cfm);
+		}
 	} else {
 		AICWFDBG(LOGERROR, "wrong func: %x\n", func);
 		return -EINVAL;
@@ -1347,7 +1522,7 @@ static int aic_priv_cmd_rdwr_bt_efuse_pwrofst (struct rwnx_hw *rwnx_hw, int argc
 }
 
 static int aic_priv_cmd_country_set(struct rwnx_hw *rwnx_hw, int argc,
-									char *argv[], char *command)
+				    char *argv[], char *command)
 {
 	int ret = 0;
 	struct ieee80211_regdomain *regdomain;
@@ -1362,11 +1537,9 @@ static int aic_priv_cmd_country_set(struct rwnx_hw *rwnx_hw, int argc,
 	regdomain = getRegdomainFromRwnxDB(rwnx_hw->wiphy, argv[1]);
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 0, 0)
-	ret = regulatory_set_wiphy_regd(
-		rwnx_hw->wiphy, regdomain);
+	ret = regulatory_set_wiphy_regd(rwnx_hw->wiphy, regdomain);
 #else
-	ret = wiphy_apply_custom_regulatory(
-		rwnx_hw->wiphy, regdomain);
+	ret = wiphy_apply_custom_regulatory(rwnx_hw->wiphy, regdomain);
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(4, 0, 0) */
 
 #ifdef CONFIG_RADAR_OR_IR_DETECT
@@ -1374,7 +1547,7 @@ static int aic_priv_cmd_country_set(struct rwnx_hw *rwnx_hw, int argc,
 #endif
 
 #ifdef CONFIG_POWER_LIMIT
-	if (!testmode){
+	if (!testmode) {
 		rwnx_send_me_chan_config_req(rwnx_hw, argv[1]);
 	}
 #endif
@@ -1382,7 +1555,8 @@ static int aic_priv_cmd_country_set(struct rwnx_hw *rwnx_hw, int argc,
 	return ret;
 }
 
-static int aic_priv_cmd_help (struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command)
+static int aic_priv_cmd_help(struct rwnx_hw *rwnx_hw, int argc, char *argv[],
+			     char *command)
 {
 	print_help(argc > 0 ? argv[0] : NULL);
 	return 0;
@@ -1390,37 +1564,28 @@ static int aic_priv_cmd_help (struct rwnx_hw *rwnx_hw, int argc, char *argv[], c
 
 struct aic_priv_cmd {
 	const char *cmd;
-	int (*handler)(struct rwnx_hw *rwnx_hw, int argc, char *argv[], char *command);
+	int (*handler)(struct rwnx_hw *rwnx_hw, int argc, char *argv[],
+		       char *command);
 	const char *usage;
 };
 
 static const struct aic_priv_cmd aic_priv_commands[] = {
 	{ "set_tx", aic_priv_cmd_set_tx,
 	  "<chan> <bw> <mode> <rate> <length> <interval>" },
-	{ "set_txstop", aic_priv_cmd_set_txstop,
-	  "= stop tx " },
-	{ "set_rx", aic_priv_cmd_set_rx,
-	  "<chan_num> <bw> " },
+	{ "set_txstop", aic_priv_cmd_set_txstop, "= stop tx " },
+	{ "set_rx", aic_priv_cmd_set_rx, "<chan_num> <bw> " },
 	{ "get_rx_result", aic_priv_cmd_get_rx_result,
 	  "= display rx fcsok/total pkt num" },
-	{ "set_rxstop", aic_priv_cmd_set_rxstop,
-	  "= stop rx " },
-	{ "set_txtone", aic_priv_cmd_set_tx_tone,
-	  "<val> val = 0/off" },
-	{ "set_rx_meter", aic_priv_cmd_set_rx_meter,
-	  "= set rx meter " },
-	{ "set_power", aic_priv_cmd_set_set_power,
-	  "<dec val> " },
-	{ "set_xtal_cap", aic_priv_cmd_set_xtal_cap,
-	  "<dec val> [0 ~ 31]" },
+	{ "set_rxstop", aic_priv_cmd_set_rxstop, "= stop rx " },
+	{ "set_txtone", aic_priv_cmd_set_tx_tone, "<val> val = 0/off" },
+	{ "set_rx_meter", aic_priv_cmd_set_rx_meter, "= set rx meter " },
+	{ "set_power", aic_priv_cmd_set_set_power, "<dec val> " },
+	{ "set_xtal_cap", aic_priv_cmd_set_xtal_cap, "<dec val> [0 ~ 31]" },
 	{ "set_xtal_cap_fine", aic_priv_cmd_set_xtal_cap_fine,
 	  "<dec val> [0 ~ 63]" },
-	{ "get_efuse_block", aic_priv_cmd_get_efuse_block,
-	  "<val>" },
-	{ "set_freq_cal", aic_priv_cmd_set_freq_cal,
-	  "<hex val>" },
-	{ "set_freq_cal_fine", aic_priv_cmd_set_freq_cal_fine,
-	  "<hex val>" },
+	{ "get_efuse_block", aic_priv_cmd_get_efuse_block, "<val>" },
+	{ "set_freq_cal", aic_priv_cmd_set_freq_cal, "<hex val>" },
+	{ "set_freq_cal_fine", aic_priv_cmd_set_freq_cal_fine, "<hex val>" },
 	{ "get_freq_cal", aic_priv_cmd_get_freq_cal,
 	  "= display cap & cap fine" },
 	{ "set_mac_addr", aic_priv_cmd_set_mac_addr,
@@ -1437,18 +1602,15 @@ static const struct aic_priv_cmd aic_priv_commands[] = {
 	  "= display vendor info stored in efuse or flash" },
 	{ "rdwr_pwrmm", aic_priv_cmd_rdwr_pwrmm,
 	  "<val> = 0/rdwr_pwrlvl, 1/set_power = read/write txpwr manul mode" },
-	{ "rdwr_pwridx", aic_priv_cmd_rdwr_pwridx,
-	  "<band> <mod> <idx>" },
-	{ "rdwr_pwrlvl", aic_priv_cmd_rdwr_pwrlvl,
-	  "<band> <mod> <idx>" },
+	{ "rdwr_pwridx", aic_priv_cmd_rdwr_pwridx, "<band> <mod> <idx>" },
+	{ "rdwr_pwrlvl", aic_priv_cmd_rdwr_pwrlvl, "<band> <mod> <idx>" },
 	{ "rdwr_pwrofst", aic_priv_cmd_rdwr_pwrofst,
 	  "<band> <rate> <ch> <ofst>" },
 	{ "rdwr_pwrofstfine", aic_priv_cmd_rdwr_pwrofstfine,
 	  "<band> <rate> <ch> <ofstfine>" },
 	{ "rdwr_drvibit", aic_priv_cmd_rdwr_drvibit,
 	  "<func> <val> read/write 8800D pa drvibit" },
-	{ "set_cal_xtal", aic_priv_cmd_set_cal_xtal,
-	  "= set cal xtal" },
+	{ "set_cal_xtal", aic_priv_cmd_set_cal_xtal, "= set cal xtal" },
 	{ "get_cal_xtal_res", aic_priv_cmd_get_cal_xtal_res,
 	  "= get cal xtal result cap & cap_fine" },
 	{ "set_cob_cal", aic_priv_cmd_set_cob_cal,
@@ -1483,22 +1645,19 @@ static const struct aic_priv_cmd aic_priv_commands[] = {
 	  "= off usb configure before usb disconnect" },
 	{ "set_pll_test", aic_priv_cmd_set_pll_test,
 	  "<func> <freq> <tx_pwr> = use pll test to measure saturation power" },
-	{ "get_txpwr", aic_priv_cmd_get_txpwr,
-	  "= get userconfig max txpwr" },
-	{ "set_txpwr_loss",aic_priv_cmd_set_txpwr_loss,
+	{ "get_txpwr", aic_priv_cmd_get_txpwr, "= get userconfig max txpwr" },
+	{ "set_txpwr_loss", aic_priv_cmd_set_txpwr_loss,
 	  "<val> = txpwr will change ,val can be negative" },
 	{ "set_ant", aic_priv_cmd_set_ant_mode,
 	  "<val> = 0/ant0, 1/ant1, 2/both" },
 	{ "rdwr_bt_efuse_pwrofst", aic_priv_cmd_rdwr_bt_efuse_pwrofst,
 	  "<pwrofst> = read/write bt tx power offset into efuse" },
-	{"country_set", aic_priv_cmd_country_set, "<ccode>"},
-//Reserve for new aic_priv_cmd.
-	{ "help", aic_priv_cmd_help,
-	  "= show usage help" },
+	{ "country_set", aic_priv_cmd_country_set, "<ccode>" },
+	//Reserve for new aic_priv_cmd.
+	{ "help", aic_priv_cmd_help, "= show usage help" },
 	{ NULL, NULL, NULL },
 
 };
-
 
 /*
  * Prints command usage, lines are padded with the specified string.
@@ -1509,7 +1668,8 @@ static void print_help(const char *cmd)
 	printk("commands:\n");
 	for (n = 0; aic_priv_commands[n].cmd; n++) {
 		if (cmd != NULL)
-			printk("%s %s\n", aic_priv_commands[n].cmd, aic_priv_commands[n].usage);
+			printk("%s %s\n", aic_priv_commands[n].cmd,
+			       aic_priv_commands[n].usage);
 	}
 }
 
@@ -1520,9 +1680,10 @@ int handle_private_cmd(struct net_device *net, char *command, u32 cmd_len)
 	int bytes_written = 0;
 	char *argv[CMD_MAXARGS + 1];
 	int argc;
-	struct rwnx_vif *vif = container_of(net->ieee80211_ptr, struct rwnx_vif, wdev);
+	struct rwnx_vif *vif =
+		container_of(net->ieee80211_ptr, struct rwnx_vif, wdev);
 	struct rwnx_hw *p_rwnx_hw = vif->rwnx_hw;
-	
+
 	RWNX_DBG(RWNX_FN_ENTRY_STR);
 
 #if 0
@@ -1541,8 +1702,7 @@ int handle_private_cmd(struct net_device *net, char *command, u32 cmd_len)
 	cmd = aic_priv_commands;
 	while (cmd->cmd) {
 		if (strncasecmp(cmd->cmd, argv[0], strlen(argv[0])) == 0 &&
-			strncasecmp(cmd->cmd, argv[0], strlen(cmd->cmd)) == 0)
-		{
+		    strncasecmp(cmd->cmd, argv[0], strlen(cmd->cmd)) == 0) {
 			match = cmd;
 			if (strcasecmp(cmd->cmd, argv[0]) == 0) {
 				/* we have an exact match */
@@ -1555,11 +1715,12 @@ int handle_private_cmd(struct net_device *net, char *command, u32 cmd_len)
 	}
 
 	if (count > 1) {
-		AICWFDBG(LOGINFO, "Ambiguous command '%s'; possible commands:", argv[0]);
+		AICWFDBG(LOGINFO,
+			 "Ambiguous command '%s'; possible commands:", argv[0]);
 		cmd = aic_priv_commands;
 		while (cmd->cmd) {
-			if (strncasecmp(cmd->cmd, argv[0],
-					   strlen(argv[0])) == 0) {
+			if (strncasecmp(cmd->cmd, argv[0], strlen(argv[0])) ==
+			    0) {
 				AICWFDBG(LOGINFO, " %s", cmd->cmd);
 			}
 			cmd++;
@@ -1569,7 +1730,8 @@ int handle_private_cmd(struct net_device *net, char *command, u32 cmd_len)
 		AICWFDBG(LOGERROR, "Unknown command '%s'\n", argv[0]);
 	} else {
 		AICWFDBG(LOGINFO, "match %s", match->cmd);
-		bytes_written = match->handler(p_rwnx_hw, argc, &argv[0], command);
+		bytes_written =
+			match->handler(p_rwnx_hw, argc, &argv[0], command);
 	}
 
 	if (bytes_written < 0)
@@ -1579,15 +1741,17 @@ int handle_private_cmd(struct net_device *net, char *command, u32 cmd_len)
 }
 
 #define RWNX_COUNTRY_CODE_LEN 2
-#define CMD_SET_COUNTRY         "COUNTRY"
-#define CMD_SET_VENDOR_EX_IE    "SET_VENDOR_EX_IE"
-#define CMD_SET_AP_WPS_P2P_IE   "SET_AP_WPS_P2P_IE"
+#define CMD_SET_COUNTRY "COUNTRY"
+#define CMD_SET_VENDOR_EX_IE "SET_VENDOR_EX_IE"
+#define CMD_SET_AP_WPS_P2P_IE "SET_AP_WPS_P2P_IE"
 
-#define CMD_SET_MON_FREQ	"SET_MON_FREQ"
-#define CMD_PCIE_DUMP  "AICDUMP"
+#define CMD_SET_MON_FREQ "SET_MON_FREQ"
+#define CMD_PCIE_DUMP "AICDUMP"
 
-struct ieee80211_regdomain *getRegdomainFromRwnxDB(struct wiphy *wiphy, char *alpha2);
-struct ieee80211_regdomain *getRegdomainFromRwnxDBIndex(struct wiphy *wiphy, int index);
+struct ieee80211_regdomain *getRegdomainFromRwnxDB(struct wiphy *wiphy,
+						   char *alpha2);
+struct ieee80211_regdomain *getRegdomainFromRwnxDBIndex(struct wiphy *wiphy,
+							int index);
 extern int reg_regdb_size;
 
 #ifdef CONFIG_SET_VENDOR_EXTENSION_IE
@@ -1595,9 +1759,9 @@ extern u8_l vendor_extension_data[256];
 extern int vendor_extension_len;
 extern int testmode = 0;
 
-void set_vendor_extension_ie(char *command){
-
-	char databyte[3]={0x00, 0x00, 0x00};
+void set_vendor_extension_ie(char *command)
+{
+	char databyte[3] = { 0x00, 0x00, 0x00 };
 	int skip = strlen(CMD_SET_VENDOR_EX_IE) + 1;
 	int command_index = skip;
 	int data_index = 0;
@@ -1609,69 +1773,70 @@ void set_vendor_extension_ie(char *command){
 	AICWFDBG(LOGINFO, "%s len:%d \r\n", __func__, vendor_extension_len);
 
 	//parser command and save data in vendor_extension_data
-	for(data_index = 0;data_index < vendor_extension_len; data_index++){
+	for (data_index = 0; data_index < vendor_extension_len; data_index++) {
 		command_index = command_index + 3;
 		memcpy(databyte, command + command_index, 2);
-		vendor_extension_data[data_index] = command_strtoul(databyte, NULL, 16);
+		vendor_extension_data[data_index] =
+			command_strtoul(databyte, NULL, 16);
 	}
-
 }
-#endif//CONFIG_SET_VENDOR_EXTENSION_IE
+#endif //CONFIG_SET_VENDOR_EXTENSION_IE
 int rwnx_cfg80211_set_monitor_channel_(struct wiphy *wiphy,
-		struct cfg80211_chan_def *chandef);
+				       struct cfg80211_chan_def *chandef);
 int rwnx_atoi2(char *value, int c_len)
 
 {
-    int len = 0;
-    int i = 0;
-    int result = 0;
-    int flag = 1;
+	int len = 0;
+	int i = 0;
+	int result = 0;
+	int flag = 1;
 
-    if (value[0] == '-') {
-        flag = -1;
-        value++;
-    }
-    len = c_len;
+	if (value[0] == '-') {
+		flag = -1;
+		value++;
+	}
+	len = c_len;
 
-    for (i = 0;i < len ;i++) {
-        result = result * 10;
-        if (value[i] >= 48 && value[i] <= 57) {
-            result += value[i] - 48;
-        } else {
-            result = 0;
-            break;
-        }
-    }
-    return result * flag;
+	for (i = 0; i < len; i++) {
+		result = result * 10;
+		if (value[i] >= 48 && value[i] <= 57) {
+			result += value[i] - 48;
+		} else {
+			result = 0;
+			break;
+		}
+	}
+	return result * flag;
 }
 
-void set_mon_chan(struct rwnx_vif *vif, char *parameter){
-    struct cfg80211_chan_def *chandef = NULL;
-    int freq = 0;
-    
-    
-    chandef = (struct cfg80211_chan_def *)vmalloc(sizeof(struct cfg80211_chan_def));
-    memset(chandef, 0, sizeof(struct cfg80211_chan_def));
-    chandef->chan = (struct ieee80211_channel *)vmalloc(sizeof(struct ieee80211_channel));
-    memset(chandef->chan, 0, sizeof(struct ieee80211_channel));
-    
-    freq = rwnx_atoi2(parameter, 4);
+void set_mon_chan(struct rwnx_vif *vif, char *parameter)
+{
+	struct cfg80211_chan_def *chandef = NULL;
+	int freq = 0;
 
-    if(freq <= 2484){
-        chandef->chan->band = NL80211_BAND_2GHZ;
-    }else{
-        chandef->chan->band = NL80211_BAND_5GHZ;
-    }
-    chandef->chan->center_freq = freq;
-    chandef->width = NL80211_CHAN_WIDTH_20;
-    chandef->center_freq1 = chandef->chan->center_freq;
-    chandef->center_freq2 = 0;
+	chandef = (struct cfg80211_chan_def *)vmalloc(
+		sizeof(struct cfg80211_chan_def));
+	memset(chandef, 0, sizeof(struct cfg80211_chan_def));
+	chandef->chan = (struct ieee80211_channel *)vmalloc(
+		sizeof(struct ieee80211_channel));
+	memset(chandef->chan, 0, sizeof(struct ieee80211_channel));
 
-    rwnx_cfg80211_set_monitor_channel_(vif->rwnx_hw->wiphy, chandef);
+	freq = rwnx_atoi2(parameter, 4);
 
-    vfree(chandef->chan);
-    vfree(chandef);
+	if (freq <= 2484) {
+		chandef->chan->band = NL80211_BAND_2GHZ;
+	} else {
+		chandef->chan->band = NL80211_BAND_5GHZ;
+	}
+	chandef->chan->center_freq = freq;
+	chandef->width = NL80211_CHAN_WIDTH_20;
+	chandef->center_freq1 = chandef->chan->center_freq;
+	chandef->center_freq2 = 0;
 
+	rwnx_cfg80211_set_monitor_channel_(vif->rwnx_hw->wiphy, chandef);
+
+	vfree(chandef->chan);
+	vfree(chandef);
 }
 
 extern u8 data_cnt;
@@ -1681,26 +1846,41 @@ void aicwf_pcie_dump(struct rwnx_hw *rwnx_hw)
 	struct rwnx_ipc_buf *buf;
 	struct ipc_e2a_msg *msg;
 	//aic debug add
-	printk("rxbuf_idx %d rxbuf_rd_idx %d rxbuf_cnt %d\n", rwnx_hw->ipc_env->rxbuf_idx, data_cnt, atomic_read(&rwnx_hw->rxbuf_cnt));
+	printk("rxbuf_idx %d rxbuf_rd_idx %d rxbuf_cnt %d\n",
+	       rwnx_hw->ipc_env->rxbuf_idx, data_cnt,
+	       atomic_read(&rwnx_hw->rxbuf_cnt));
 	for (i = 0; i < rwnx_hw->ipc_env->rxbuf_nb; i++) {
-		printk("rx[%d] dma %x, pt %x\n", i, rwnx_hw->ipc_env->shared->host_rxbuf[i].dma_addr, rwnx_hw->ipc_env->shared->host_rxbuf[i].pattern);
+		printk("rx[%d] dma %x, pt %x\n", i,
+		       rwnx_hw->ipc_env->shared->host_rxbuf[i].dma_addr,
+		       rwnx_hw->ipc_env->shared->host_rxbuf[i].pattern);
 	}
 
-	printk("txdesc_idx %d txcfm_idx %d\n",rwnx_hw->ipc_env->txdmadesc_idx, rwnx_hw->ipc_env->txcfm_idx);
+	printk("txdesc_idx %d txcfm_idx %d\n", rwnx_hw->ipc_env->txdmadesc_idx,
+	       rwnx_hw->ipc_env->txcfm_idx);
 	for (i = 0; i < IPC_TXDMA_DESC_CNT; i++) {
-		printk("tx[%d] dma %x, ready %x, pt %x\n", i, rwnx_hw->ipc_env->shared->txdesc[i].packet_dma_addr, rwnx_hw->ipc_env->shared->txdesc[i].ready, rwnx_hw->ipc_env->shared->txdesc[i].pattern);
+		printk("tx[%d] dma %x, ready %x, pt %x\n", i,
+		       rwnx_hw->ipc_env->shared->txdesc[i].packet_dma_addr,
+		       rwnx_hw->ipc_env->shared->txdesc[i].ready,
+		       rwnx_hw->ipc_env->shared->txdesc[i].pattern);
 	}
 
-	printk("fc %d txdata cnt %d push %d reserved %d\n",
-		rwnx_hw->fc, atomic_read(&rwnx_hw->txdata_cnt), atomic_read(&rwnx_hw->txdata_cnt_push), rwnx_hw->txdata_reserved);
+	printk("fc %d txdata cnt %d push %d reserved %d\n", rwnx_hw->fc,
+	       atomic_read(&rwnx_hw->txdata_cnt),
+	       atomic_read(&rwnx_hw->txdata_cnt_push),
+	       rwnx_hw->txdata_reserved);
 
 	printk("msgbuf_idx:%d\n", rwnx_hw->ipc_env->msgbuf_idx);
 	buf = rwnx_hw->ipc_env->msgbuf[rwnx_hw->ipc_env->msgbuf_idx];
 	msg = buf->addr;
-	printk("msg id:0x%x param_len:%d pt:0x%x\n", msg->id, msg->param_len, msg->pattern);
-	buf = rwnx_hw->ipc_env->msgbuf[rwnx_hw->ipc_env->msgbuf_idx == 0 ? (IPC_MSGE2A_BUF_CNT - 1) : (rwnx_hw->ipc_env->msgbuf_idx - 1)];
+	printk("msg id:0x%x param_len:%d pt:0x%x\n", msg->id, msg->param_len,
+	       msg->pattern);
+	buf = rwnx_hw->ipc_env
+		      ->msgbuf[rwnx_hw->ipc_env->msgbuf_idx == 0 ?
+				       (IPC_MSGE2A_BUF_CNT - 1) :
+				       (rwnx_hw->ipc_env->msgbuf_idx - 1)];
 	msg = buf->addr;
-	printk("last msg id:0x%x param_len:%d pt:0x%x\n", msg->id, msg->param_len, msg->pattern);
+	printk("last msg id:0x%x param_len:%d pt:0x%x\n", msg->id,
+	       msg->param_len, msg->pattern);
 	//aic debug end
 }
 
@@ -1725,8 +1905,7 @@ int android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 	///todo: add our lock
 	//net_os_wake_lock(net);
 
-
-/*	if (!capable(CAP_NET_ADMIN)) {
+	/*	if (!capable(CAP_NET_ADMIN)) {
 		ret = -EPERM;
 		goto exit;
 	}*/
@@ -1743,8 +1922,9 @@ int android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 #endif
 	{
 		compat_android_wifi_priv_cmd compat_priv_cmd;
-		if (copy_from_user(&compat_priv_cmd, ifr->ifr_data, sizeof(compat_android_wifi_priv_cmd))) {
-		ret = -EFAULT;
+		if (copy_from_user(&compat_priv_cmd, ifr->ifr_data,
+				   sizeof(compat_android_wifi_priv_cmd))) {
+			ret = -EFAULT;
 			goto exit;
 		}
 		priv_cmd.buf = compat_ptr(compat_priv_cmd.buf);
@@ -1753,13 +1933,16 @@ int android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 	} else
 #endif /* CONFIG_COMPAT */
 	{
-		if (copy_from_user(&priv_cmd, ifr->ifr_data, sizeof(android_wifi_priv_cmd))) {
+		if (copy_from_user(&priv_cmd, ifr->ifr_data,
+				   sizeof(android_wifi_priv_cmd))) {
 			ret = -EFAULT;
 			goto exit;
 		}
 	}
-	if ((priv_cmd.total_len > PRIVATE_COMMAND_MAX_LEN) || (priv_cmd.total_len < 0)) {
-		AICWFDBG(LOGERROR, "%s: buf length invalid:%d\n", __FUNCTION__, priv_cmd.total_len);
+	if ((priv_cmd.total_len > PRIVATE_COMMAND_MAX_LEN) ||
+	    (priv_cmd.total_len < 0)) {
+		AICWFDBG(LOGERROR, "%s: buf length invalid:%d\n", __FUNCTION__,
+			 priv_cmd.total_len);
 		ret = -EINVAL;
 		goto exit;
 	}
@@ -1767,9 +1950,9 @@ int android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 	buf_size = max(priv_cmd.total_len, PRIVATE_COMMAND_DEF_LEN);
 	command = kmalloc((buf_size + 1), GFP_KERNEL);
 
-	if (!command)
-	{
-		AICWFDBG(LOGERROR, "%s: failed to allocate memory\n", __FUNCTION__);
+	if (!command) {
+		AICWFDBG(LOGERROR, "%s: failed to allocate memory\n",
+			 __FUNCTION__);
 		ret = -ENOMEM;
 		goto exit;
 	}
@@ -1780,18 +1963,19 @@ int android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 	command[priv_cmd.total_len] = '\0';
 
 	/* outputs */
-	AICWFDBG(LOGINFO, "%s: Android private cmd \"%s\" on %s\n", __FUNCTION__, command, ifr->ifr_name);
+	AICWFDBG(LOGINFO, "%s: Android private cmd \"%s\" on %s\n",
+		 __FUNCTION__, command, ifr->ifr_name);
 	AICWFDBG(LOGINFO, "cmd = %d\n", cmd);
 	AICWFDBG(LOGINFO, "buf_size=%d\n", buf_size);
 
-
-#if 1//Handle Android command
-	if(!strncasecmp(command, CMD_SET_COUNTRY, strlen(CMD_SET_COUNTRY)) &&
-		strncasecmp(command, "country_set", strlen("country_set"))) {
+#if 1 //Handle Android command
+	if (!strncasecmp(command, CMD_SET_COUNTRY, strlen(CMD_SET_COUNTRY)) &&
+	    strncasecmp(command, "country_set", strlen("country_set"))) {
 		skip = strlen(CMD_SET_COUNTRY) + 1;
 		country = command + skip;
 		if (!country || strlen(country) < RWNX_COUNTRY_CODE_LEN) {
-			AICWFDBG(LOGERROR, "%s: invalid country code\n", __func__);
+			AICWFDBG(LOGERROR, "%s: invalid country code\n",
+				 __func__);
 			ret = -EINVAL;
 			goto exit;
 		}
@@ -1805,22 +1989,27 @@ int android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 			}
 		}
 #endif
-		AICWFDBG(LOGINFO, "%s country code:%c%c\n", __func__, toupper(country[0]), toupper(country[1]));
-		regdomain = getRegdomainFromRwnxDB(vif->rwnx_hw->wiphy, country);
+		AICWFDBG(LOGINFO, "%s country code:%c%c\n", __func__,
+			 toupper(country[0]), toupper(country[1]));
+		regdomain =
+			getRegdomainFromRwnxDB(vif->rwnx_hw->wiphy, country);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 0, 0)
-		if((ret = regulatory_set_wiphy_regd(vif->rwnx_hw->wiphy, regdomain))){
-			AICWFDBG(LOGERROR, "regulatory_set_wiphy_regd fail \r\n");
+		if ((ret = regulatory_set_wiphy_regd(vif->rwnx_hw->wiphy,
+						     regdomain))) {
+			AICWFDBG(LOGERROR,
+				 "regulatory_set_wiphy_regd fail \r\n");
 		}
 #else
 		wiphy_apply_custom_regulatory(vif->rwnx_hw->wiphy, regdomain);
 #endif
 
 #ifdef CONFIG_RADAR_OR_IR_DETECT
-		rwnx_radar_set_domain(&vif->rwnx_hw->radar, regdomain->dfs_region);
+		rwnx_radar_set_domain(&vif->rwnx_hw->radar,
+				      regdomain->dfs_region);
 #endif
 
 #ifdef CONFIG_POWER_LIMIT
-		if (!testmode){
+		if (!testmode) {
 			rwnx_send_me_chan_config_req(vif->rwnx_hw, country);
 		}
 #endif
@@ -1828,34 +2017,36 @@ int android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 		goto exit;
 	}
 #ifdef CONFIG_SET_VENDOR_EXTENSION_IE
-	else if(!strncasecmp(command, CMD_SET_VENDOR_EX_IE, strlen(CMD_SET_VENDOR_EX_IE))){
+	else if (!strncasecmp(command, CMD_SET_VENDOR_EX_IE,
+			      strlen(CMD_SET_VENDOR_EX_IE))) {
 		set_vendor_extension_ie(command);
 		ret = 0;
 		goto exit;
 	}
-#endif//CONFIG_SET_VENDOR_EXTENSION_IE
-	else if(!strncasecmp(command, CMD_SET_AP_WPS_P2P_IE, strlen(CMD_SET_AP_WPS_P2P_IE))){
+#endif //CONFIG_SET_VENDOR_EXTENSION_IE
+	else if (!strncasecmp(command, CMD_SET_AP_WPS_P2P_IE,
+			      strlen(CMD_SET_AP_WPS_P2P_IE))) {
 		ret = 0;
 		goto exit;
 
 	}
 #ifdef CONFIG_RWNX_MON_DATA
-    else if(!strncasecmp(command, CMD_SET_MON_FREQ, strlen(CMD_SET_MON_FREQ))){
-	    char *set_parameter;
-        skip = strlen(CMD_SET_MON_FREQ) + 1;
+	else if (!strncasecmp(command, CMD_SET_MON_FREQ,
+			      strlen(CMD_SET_MON_FREQ))) {
+		char *set_parameter;
+		skip = strlen(CMD_SET_MON_FREQ) + 1;
 		set_parameter = command + skip;
-	    set_mon_chan(vif, set_parameter);
+		set_mon_chan(vif, set_parameter);
 		ret = 0;
 		goto exit;
-    }
+	}
 #endif
-    else if(!strncasecmp(command, CMD_PCIE_DUMP, strlen(CMD_PCIE_DUMP))){
+	else if (!strncasecmp(command, CMD_PCIE_DUMP, strlen(CMD_PCIE_DUMP))) {
 		aicwf_pcie_dump(vif->rwnx_hw);
 		ret = 0;
 		goto exit;
-    }
-#endif//Handle Android command
-
+	}
+#endif //Handle Android command
 
 	bytes_written = handle_private_cmd(net, command, priv_cmd.total_len);
 	if (bytes_written >= 0) {
@@ -1863,18 +2054,20 @@ int android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 			command[0] = '\0';
 		}
 		if (bytes_written >= priv_cmd.total_len) {
-			AICWFDBG(LOGINFO, "%s: err. bytes_written:%d >= buf_size:%d \n",
-				__FUNCTION__, bytes_written, buf_size);
+			AICWFDBG(LOGINFO,
+				 "%s: err. bytes_written:%d >= buf_size:%d \n",
+				 __FUNCTION__, bytes_written, buf_size);
 			goto exit;
 		}
 		bytes_written++;
 		priv_cmd.used_len = bytes_written;
 		if (copy_to_user(priv_cmd.buf, command, bytes_written)) {
-		AICWFDBG(LOGERROR, "%s: failed to copy data to user buffer\n", __FUNCTION__);
+			AICWFDBG(LOGERROR,
+				 "%s: failed to copy data to user buffer\n",
+				 __FUNCTION__);
 			ret = -EFAULT;
 		}
-	}
-	else {
+	} else {
 		/* Propagate the error */
 		ret = bytes_written;
 	}
@@ -1886,95 +2079,104 @@ exit:
 	return ret;
 }
 
-
 #ifdef CONFIG_MCU_MESSAGE
 #define CMD_GET_VERSION_STR "GET_VERSION"
-#define CMD_GET_SSID_STR    "GET_SSID"
-#define CMD_SET_SSID_STR    "SET_SSID"
-#define CMD_GET_PASS_STR    "GET_PASS"
-#define CMD_SET_PASS_STR    "SET_PASS"
-#define CMD_GET_VAR_STR     "GET_VAR"
-#define CMD_SET_VAR_STR     "SET_VAR"
+#define CMD_GET_SSID_STR "GET_SSID"
+#define CMD_SET_SSID_STR "SET_SSID"
+#define CMD_GET_PASS_STR "GET_PASS"
+#define CMD_SET_PASS_STR "SET_PASS"
+#define CMD_GET_VAR_STR "GET_VAR"
+#define CMD_SET_VAR_STR "SET_VAR"
 
-enum custmsg_cmd_tag
-{
-    CUST_CMD_GET_VERSION = 0,
-    CUST_CMD_GET_SSID,
-    CUST_CMD_SET_SSID,
-    CUST_CMD_GET_PASS,
-    CUST_CMD_SET_PASS,
-    CUST_CMD_GET_VAR,
-    CUST_CMD_SET_VAR,
-    CUST_CMD_MAX
+enum custmsg_cmd_tag {
+	CUST_CMD_GET_VERSION = 0,
+	CUST_CMD_GET_SSID,
+	CUST_CMD_SET_SSID,
+	CUST_CMD_GET_PASS,
+	CUST_CMD_SET_PASS,
+	CUST_CMD_GET_VAR,
+	CUST_CMD_SET_VAR,
+	CUST_CMD_MAX
 };
 
 int handle_custom_msg(char *command, u32 cmd_len)
 {
-    int bytes_read = 0, max_bytes_to_read = 0;
-    struct rwnx_hw *p_rwnx_hw = NULL;
-    u32 cmd, len = 0, flags = 0;
-    char *buf = NULL;
-    struct dbg_custom_msg_cfm *cust_msg_cfm;
-    printk("cmd,%s,%ld\n",command,strlen(command));
-    if (strncasecmp(command, CMD_GET_VERSION_STR, strlen(CMD_GET_VERSION_STR)) == 0) {
-        cmd = CUST_CMD_GET_VERSION;
-        max_bytes_to_read = 32; // max str len for version
-    } else if (strncasecmp(command, CMD_GET_SSID_STR, strlen(CMD_GET_SSID_STR)) == 0) {
-        cmd = CUST_CMD_GET_SSID;
-        max_bytes_to_read = 48; // max str len for ssid
-    } else if (strncasecmp(command, CMD_SET_SSID_STR, strlen(CMD_SET_SSID_STR)) == 0) {
-        cmd = CUST_CMD_SET_SSID;
-        len = cmd_len - (strlen(CMD_SET_SSID_STR) + 1);
-        buf = command + (strlen(CMD_SET_SSID_STR) + 1);
-        max_bytes_to_read = 0;
-    } else if (strncasecmp(command, CMD_GET_PASS_STR, strlen(CMD_GET_PASS_STR)) == 0) {
-        cmd = CUST_CMD_GET_PASS;
-        max_bytes_to_read = 64; // max str len for PASS
-    } else if (strncasecmp(command, CMD_SET_PASS_STR, strlen(CMD_SET_PASS_STR)) == 0) {
-        cmd = CUST_CMD_SET_PASS;
-        len = cmd_len - (strlen(CMD_SET_PASS_STR) + 1);
-        buf = command + (strlen(CMD_SET_PASS_STR) + 1);
-        max_bytes_to_read = 0;
-    } else if (strncasecmp(command, CMD_GET_VAR_STR, strlen(CMD_GET_VAR_STR)) == 0) {
-        cmd = CUST_CMD_GET_VAR;
-        max_bytes_to_read = 64; // max str len for VAR
-    } else if (strncasecmp(command, CMD_SET_VAR_STR, strlen(CMD_SET_VAR_STR)) == 0) {
-        cmd = CUST_CMD_SET_VAR;
-        len = cmd_len - (strlen(CMD_SET_VAR_STR) + 1);
-        buf = command + (strlen(CMD_SET_VAR_STR) + 1);
-        max_bytes_to_read = 0;
-    } else {
-        printk("invalid cmd: %s\r\n", command);
-        return -1;
-    }
-    if (len < 0) {
-        printk("invalid len: %d\r\n", len);
-        return -3;
-    }
-    #ifdef AICWF_SDIO_SUPPORT
-    p_rwnx_hw = g_rwnx_plat->sdiodev->rwnx_hw;
-    #endif
-    #ifdef AICWF_USB_SUPPORT
-    p_rwnx_hw = g_rwnx_plat->usbdev->rwnx_hw;
-    #endif
-    cust_msg_cfm = (struct dbg_custom_msg_cfm *)kmalloc((offsetof(struct dbg_custom_msg_cfm, buf) + max_bytes_to_read), GFP_KERNEL);
-    if (cust_msg_cfm == NULL) {
-        printk("msg cfm alloc fail\r\n");
-        return -2;
-    }
-    rwnx_send_dbg_custom_msg_req(p_rwnx_hw, cmd, buf, len, flags, cust_msg_cfm);
-    bytes_read = cust_msg_cfm->len;
-    printk("Custom msg cfm: cmd=%d, len=%d, status=%x\n", cust_msg_cfm->cmd, bytes_read, cust_msg_cfm->status);
-    if (bytes_read) {
-        memcpy(command, cust_msg_cfm->buf, bytes_read);
-        command[bytes_read] = '\0';
-    } else {
-        command[0] = '\0';
-    }
-    if (cust_msg_cfm->status) {
-        printk("cfm status: %x", cust_msg_cfm->status);
-    }
-    return bytes_read;
+	int bytes_read = 0, max_bytes_to_read = 0;
+	struct rwnx_hw *p_rwnx_hw = NULL;
+	u32 cmd, len = 0, flags = 0;
+	char *buf = NULL;
+	struct dbg_custom_msg_cfm *cust_msg_cfm;
+	printk("cmd,%s,%ld\n", command, strlen(command));
+	if (strncasecmp(command, CMD_GET_VERSION_STR,
+			strlen(CMD_GET_VERSION_STR)) == 0) {
+		cmd = CUST_CMD_GET_VERSION;
+		max_bytes_to_read = 32; // max str len for version
+	} else if (strncasecmp(command, CMD_GET_SSID_STR,
+			       strlen(CMD_GET_SSID_STR)) == 0) {
+		cmd = CUST_CMD_GET_SSID;
+		max_bytes_to_read = 48; // max str len for ssid
+	} else if (strncasecmp(command, CMD_SET_SSID_STR,
+			       strlen(CMD_SET_SSID_STR)) == 0) {
+		cmd = CUST_CMD_SET_SSID;
+		len = cmd_len - (strlen(CMD_SET_SSID_STR) + 1);
+		buf = command + (strlen(CMD_SET_SSID_STR) + 1);
+		max_bytes_to_read = 0;
+	} else if (strncasecmp(command, CMD_GET_PASS_STR,
+			       strlen(CMD_GET_PASS_STR)) == 0) {
+		cmd = CUST_CMD_GET_PASS;
+		max_bytes_to_read = 64; // max str len for PASS
+	} else if (strncasecmp(command, CMD_SET_PASS_STR,
+			       strlen(CMD_SET_PASS_STR)) == 0) {
+		cmd = CUST_CMD_SET_PASS;
+		len = cmd_len - (strlen(CMD_SET_PASS_STR) + 1);
+		buf = command + (strlen(CMD_SET_PASS_STR) + 1);
+		max_bytes_to_read = 0;
+	} else if (strncasecmp(command, CMD_GET_VAR_STR,
+			       strlen(CMD_GET_VAR_STR)) == 0) {
+		cmd = CUST_CMD_GET_VAR;
+		max_bytes_to_read = 64; // max str len for VAR
+	} else if (strncasecmp(command, CMD_SET_VAR_STR,
+			       strlen(CMD_SET_VAR_STR)) == 0) {
+		cmd = CUST_CMD_SET_VAR;
+		len = cmd_len - (strlen(CMD_SET_VAR_STR) + 1);
+		buf = command + (strlen(CMD_SET_VAR_STR) + 1);
+		max_bytes_to_read = 0;
+	} else {
+		printk("invalid cmd: %s\r\n", command);
+		return -1;
+	}
+	if (len < 0) {
+		printk("invalid len: %d\r\n", len);
+		return -3;
+	}
+#ifdef AICWF_SDIO_SUPPORT
+	p_rwnx_hw = g_rwnx_plat->sdiodev->rwnx_hw;
+#endif
+#ifdef AICWF_USB_SUPPORT
+	p_rwnx_hw = g_rwnx_plat->usbdev->rwnx_hw;
+#endif
+	cust_msg_cfm = (struct dbg_custom_msg_cfm *)kmalloc(
+		(offsetof(struct dbg_custom_msg_cfm, buf) + max_bytes_to_read),
+		GFP_KERNEL);
+	if (cust_msg_cfm == NULL) {
+		printk("msg cfm alloc fail\r\n");
+		return -2;
+	}
+	rwnx_send_dbg_custom_msg_req(p_rwnx_hw, cmd, buf, len, flags,
+				     cust_msg_cfm);
+	bytes_read = cust_msg_cfm->len;
+	printk("Custom msg cfm: cmd=%d, len=%d, status=%x\n", cust_msg_cfm->cmd,
+	       bytes_read, cust_msg_cfm->status);
+	if (bytes_read) {
+		memcpy(command, cust_msg_cfm->buf, bytes_read);
+		command[bytes_read] = '\0';
+	} else {
+		command[0] = '\0';
+	}
+	if (cust_msg_cfm->status) {
+		printk("cfm status: %x", cust_msg_cfm->status);
+	}
+	return bytes_read;
 }
 
 int devipc_cust_msg(struct net_device *net, struct ifreq *ifr, int cmd)
@@ -1985,103 +2187,105 @@ int devipc_cust_msg(struct net_device *net, struct ifreq *ifr, int cmd)
 #define PRIVATE_COMMAND_MAX_LEN 8192
 #define PRIVATE_COMMAND_DEF_LEN 4096
 #endif
-    int ret = 0;
-    char *command = NULL;
-    int bytes_written = 0;
-    android_wifi_priv_cmd priv_cmd;
-    int buf_size = 0;
+	int ret = 0;
+	char *command = NULL;
+	int bytes_written = 0;
+	android_wifi_priv_cmd priv_cmd;
+	int buf_size = 0;
 
-    RWNX_DBG(RWNX_FN_ENTRY_STR);
+	RWNX_DBG(RWNX_FN_ENTRY_STR);
 
-    ///todo: add our lock
-    //net_os_wake_lock(net);
+	///todo: add our lock
+	//net_os_wake_lock(net);
 
-
-/*    if (!capable(CAP_NET_ADMIN)) {
+	/*    if (!capable(CAP_NET_ADMIN)) {
         ret = -EPERM;
         goto exit;
     }*/
-    if (!ifr->ifr_data) {
-        ret = -EINVAL;
-        goto exit;
-    }
+	if (!ifr->ifr_data) {
+		ret = -EINVAL;
+		goto exit;
+	}
 
 #ifdef CONFIG_COMPAT
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 6, 0))
-    if (in_compat_syscall())
+	if (in_compat_syscall())
 #else
-    if (is_compat_task())
+	if (is_compat_task())
 #endif
-    {
-        compat_android_wifi_priv_cmd compat_priv_cmd;
-        if (copy_from_user(&compat_priv_cmd, ifr->ifr_data, sizeof(compat_android_wifi_priv_cmd))) {
-	    ret = -EFAULT;
-            goto exit;
-        }
-        priv_cmd.buf = compat_ptr(compat_priv_cmd.buf);
-        priv_cmd.used_len = compat_priv_cmd.used_len;
-        priv_cmd.total_len = compat_priv_cmd.total_len;
-    } else
+	{
+		compat_android_wifi_priv_cmd compat_priv_cmd;
+		if (copy_from_user(&compat_priv_cmd, ifr->ifr_data,
+				   sizeof(compat_android_wifi_priv_cmd))) {
+			ret = -EFAULT;
+			goto exit;
+		}
+		priv_cmd.buf = compat_ptr(compat_priv_cmd.buf);
+		priv_cmd.used_len = compat_priv_cmd.used_len;
+		priv_cmd.total_len = compat_priv_cmd.total_len;
+	} else
 #endif /* CONFIG_COMPAT */
-    {
-        if (copy_from_user(&priv_cmd, ifr->ifr_data, sizeof(android_wifi_priv_cmd))) {
-	    ret = -EFAULT;
-            goto exit;
-        }
-    }
-    if ((priv_cmd.total_len > PRIVATE_COMMAND_MAX_LEN) || (priv_cmd.total_len < 0)) {
-        printk("%s: buf length invalid:%d\n", __FUNCTION__, priv_cmd.total_len);
-        ret = -EINVAL;
-        goto exit;
-    }
+	{
+		if (copy_from_user(&priv_cmd, ifr->ifr_data,
+				   sizeof(android_wifi_priv_cmd))) {
+			ret = -EFAULT;
+			goto exit;
+		}
+	}
+	if ((priv_cmd.total_len > PRIVATE_COMMAND_MAX_LEN) ||
+	    (priv_cmd.total_len < 0)) {
+		printk("%s: buf length invalid:%d\n", __FUNCTION__,
+		       priv_cmd.total_len);
+		ret = -EINVAL;
+		goto exit;
+	}
 
-    buf_size = max(priv_cmd.total_len, PRIVATE_COMMAND_DEF_LEN);
-    command = kmalloc((buf_size + 1), GFP_KERNEL);
+	buf_size = max(priv_cmd.total_len, PRIVATE_COMMAND_DEF_LEN);
+	command = kmalloc((buf_size + 1), GFP_KERNEL);
 
-    if (!command)
-    {
-        printk("%s: failed to allocate memory\n", __FUNCTION__);
-        ret = -ENOMEM;
-        goto exit;
-    }
-    if (copy_from_user(command, priv_cmd.buf, priv_cmd.used_len)) {
-        ret = -EFAULT;
-        goto exit;
-    }
-    command[priv_cmd.used_len] = '\0';
+	if (!command) {
+		printk("%s: failed to allocate memory\n", __FUNCTION__);
+		ret = -ENOMEM;
+		goto exit;
+	}
+	if (copy_from_user(command, priv_cmd.buf, priv_cmd.used_len)) {
+		ret = -EFAULT;
+		goto exit;
+	}
+	command[priv_cmd.used_len] = '\0';
 
-    /* outputs */
-    printk("%s: Devipc custom msg \"%s\" on %s\n", __FUNCTION__, command, ifr->ifr_name);
-    printk("cmd = %x\n", cmd);
-    printk("buf_size=%d\n", buf_size);
+	/* outputs */
+	printk("%s: Devipc custom msg \"%s\" on %s\n", __FUNCTION__, command,
+	       ifr->ifr_name);
+	printk("cmd = %x\n", cmd);
+	printk("buf_size=%d\n", buf_size);
 
-
-    bytes_written = handle_custom_msg(command, priv_cmd.used_len);
-    if (bytes_written >= 0) {
-        if ((bytes_written == 0) && (priv_cmd.total_len > 0)) {
-            command[0] = '\0';
-        }
-        if (bytes_written >= priv_cmd.total_len) {
-            printk("%s: err. bytes_written:%d >= buf_size:%d \n",
-                __FUNCTION__, bytes_written, buf_size);
-            goto exit;
-        }
-        bytes_written++;
-        priv_cmd.used_len = bytes_written;
-        if (copy_to_user(priv_cmd.buf, command, bytes_written)) {
-            printk("%s: failed to copy data to user buffer\n", __FUNCTION__);
-            ret = -EFAULT;
-        }
-    }
-    else {
-        /* Propagate the error */
-        ret = bytes_written;
-    }
+	bytes_written = handle_custom_msg(command, priv_cmd.used_len);
+	if (bytes_written >= 0) {
+		if ((bytes_written == 0) && (priv_cmd.total_len > 0)) {
+			command[0] = '\0';
+		}
+		if (bytes_written >= priv_cmd.total_len) {
+			printk("%s: err. bytes_written:%d >= buf_size:%d \n",
+			       __FUNCTION__, bytes_written, buf_size);
+			goto exit;
+		}
+		bytes_written++;
+		priv_cmd.used_len = bytes_written;
+		if (copy_to_user(priv_cmd.buf, command, bytes_written)) {
+			printk("%s: failed to copy data to user buffer\n",
+			       __FUNCTION__);
+			ret = -EFAULT;
+		}
+	} else {
+		/* Propagate the error */
+		ret = bytes_written;
+	}
 
 exit:
-    ///todo: add our unlock
-    //net_os_wake_unlock(net);
-    kfree(command);
-    return ret;
+	///todo: add our unlock
+	//net_os_wake_unlock(net);
+	kfree(command);
+	return ret;
 }
 #endif
