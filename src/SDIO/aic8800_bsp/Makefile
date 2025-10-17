@@ -81,7 +81,6 @@ endif
 
 ########## Platform support list ##########
 CONFIG_PLATFORM_INGENIC_T20 ?= n
-CONFIG_PLATFORM_UBUNTU ?= y
 
 ifeq ($(CONFIG_PLATFORM_INGENIC_T20), y)
 KDIR ?= /home/yaya/E/T40/kernel
@@ -89,15 +88,12 @@ ARCH ?= mips
 CROSS_COMPILE ?= /home/yaya/E/T40/mips-linux-gnu-ingenic-gcc7.2.0-glibc2.29-fp64/bin/mips-linux-gnu-
 endif
 
-ifeq ($(CONFIG_PLATFORM_UBUNTU), y)
-ccflags-$(CONFIG_PLATFORM_UBUNTU) += -DCONFIG_PLATFORM_UBUNTU
 KDIR  ?= /lib/modules/$(shell uname -r)/build
 PWD   ?= $(shell pwd)
 KVER ?= $(shell uname -r)
 MODDESTDIR ?= /lib/modules/$(KVER)/kernel/drivers/net/wireless/
 ARCH ?= x86_64
 CROSS_COMPILE ?=
-endif
 ###########################################
 
 all: modules

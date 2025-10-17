@@ -1158,13 +1158,11 @@ failed:
 #endif
 }
 
-#ifdef CONFIG_PLATFORM_UBUNTU //AIDEN
 typedef u32 compat_uptr_t;
 static inline void __user *compat_ptr(compat_uptr_t uptr)
 {
 	return (void __user *)(unsigned long)uptr;
 }
-#endif
 
 #ifdef CONFIG_COMPAT
 static long compat_btchr_ioctl(struct file *filp, unsigned int cmd,

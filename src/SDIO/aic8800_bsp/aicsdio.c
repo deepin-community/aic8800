@@ -33,11 +33,7 @@ static bool aicbsp_load_fw_in_fdrv = false;
 
 #define FW_PATH_MAX 200
 
-//#ifdef CONFIG_PLATFORM_UBUNTU
-//static const char* aic_default_fw_path = "/lib/firmware/aic8800_sdio";
-//#else
 static const char *aic_default_fw_path = CONFIG_AIC_FW_PATH;
-//#endif
 char aic_fw_path[FW_PATH_MAX];
 module_param_string(aic_fw_path, aic_fw_path, FW_PATH_MAX, 0660);
 #ifdef CONFIG_M2D_OTA_AUTO_SUPPORT

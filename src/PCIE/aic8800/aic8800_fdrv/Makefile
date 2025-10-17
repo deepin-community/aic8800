@@ -308,7 +308,6 @@ ccflags-$(CONFIG_USB_BT) += -DCONFIG_USB_BT
 
 # Platform support list
 CONFIG_PLATFORM_INGENIC_T20 ?= n
-CONFIG_PLATFORM_UBUNTU ?= y
 
 ccflags-y += -DAIC_TRACE_INCLUDE_PATH=$(src)
 
@@ -320,7 +319,6 @@ ARCH ?= mips
 CROSS_COMPILE ?= /home/yaya/E/T40/mips-linux-gnu-ingenic-gcc7.2.0-glibc2.29-fp64/bin/mips-linux-gnu-
 endif
 
-ifeq ($(CONFIG_PLATFORM_UBUNTU), y)
 KDIR  ?= /lib/modules/$(shell uname -r)/build
 PWD   ?= $(shell pwd)
 KVER ?= $(shell uname -r)
@@ -328,8 +326,6 @@ MODDESTDIR ?= /lib/modules/$(KVER)/kernel/drivers/net/wireless/aic8800D80/
 SUBARCH = $(shell uname -m | sed -e s/i.86/i386/ -e s/armv.l/arm/ -e s/aarch64/arm64/)
 ARCH ?= $(SUBARCH)
 CROSS_COMPILE ?=
-endif
-
 
 all: modules
 modules:

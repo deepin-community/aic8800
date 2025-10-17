@@ -4,10 +4,6 @@ obj-$(CONFIG_AIC8800_BTLPM_SUPPORT) := aic8800_btlpm.o
 
 ccflags-y += -I$(srctree)/$(src)/../aic8800_bsp
 
-# Platform support list
-CONFIG_PLATFORM_UBUNTU ?= y
-
-
 CONFIG_SUPPORT_LPM ?= n
 CONFIG_AUTO_PM ?= n
 
@@ -21,14 +17,12 @@ ccflags-y += -DAIC_TRACE_INCLUDE_PATH=$(src)
 
 ccflags-$(CONFIG_AUTO_PM) += -DCONFIG_AUTO_PM
 
-ifeq ($(CONFIG_PLATFORM_UBUNTU), y)
 KDIR  ?= /lib/modules/$(shell uname -r)/build
 PWD   ?= $(shell pwd)
 KVER ?= $(shell uname -r)
 MODDESTDIR ?= /lib/modules/$(KVER)/kernel/drivers/net/wireless/
 ARCH ?= x86_64
 CROSS_COMPILE ?=
-endif
 
 
 all: modules

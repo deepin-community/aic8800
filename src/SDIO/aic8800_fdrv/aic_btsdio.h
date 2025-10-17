@@ -17,11 +17,7 @@
 #include <linux/firmware.h>
 #include <linux/suspend.h>
 
-#ifdef CONFIG_PLATFORM_UBUNTU
 #define CONFIG_BLUEDROID 0 /* bleuz 0, bluedroid 1 */
-#else
-#define CONFIG_BLUEDROID 1 /* bleuz 0, bluedroid 1 */
-#endif
 /* #define HCI_VERSION_CODE KERNEL_VERSION(3, 14, 41) */
 #define HCI_VERSION_CODE LINUX_VERSION_CODE
 

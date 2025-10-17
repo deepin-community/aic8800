@@ -15,9 +15,6 @@ CONFIG_USE_FW_REQUEST ?= n
 CONFIG_PREALLOC_RX_SKB ?= n
 CONFIG_PREALLOC_TXQ ?= y
 
-# Platform support list
-CONFIG_PLATFORM_UBUNTU ?= y
-
 CONFIG_AIC_LOADFW_SUPPORT = m
 MODULE_NAME = aic_load_fw
 # CONFIG_AIC_FW_PATH = "/vendor/etc/firmware"
@@ -53,16 +50,13 @@ $(MODULE_NAME)-y := 	aic_bluetooth_main.o \
 $(MODULE_NAME)-$(CONFIG_PREALLOC_RX_SKB)	 += aicwf_rx_prealloc.o
 $(MODULE_NAME)-$(CONFIG_PREALLOC_TXQ)     += aicwf_txq_prealloc.o
 
-ifeq ($(CONFIG_PLATFORM_UBUNTU), y)
-ccflags-$(CONFIG_PLATFORM_UBUNTU) += -DCONFIG_PLATFORM_UBUNTU
-KDIR  := /lib/modules/$(shell uname -r)/build
+KDIR  ?= /lib/modules/$(shell uname -r)/build
 PWD   := $(shell pwd)
 KVER := $(shell uname -r)
 MODDESTDIR := /lib/modules/$(KVER)/kernel/drivers/net/wireless/aic8800
 SUBARCH = $(shell uname -m | sed -e s/i.86/i386/ -e s/armv.l/arm/ -e s/aarch64/arm64/)
 ARCH ?= $(SUBARCH)
 CROSS_COMPILE :=
-endif
 
 
 all: modules

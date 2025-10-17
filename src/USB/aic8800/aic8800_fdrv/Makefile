@@ -330,10 +330,6 @@ ccflags-$(CONFIG_EXT_FEM_8800DCDW) += -DCONFIG_EXT_FEM_8800DCDW
 ccflags-$(CONFIG_WOWLAN) += -DCONFIG_WOWLAN
 MAKEFLAGS +=-j$(shell nproc)
 
-# Platform support list
-CONFIG_PLATFORM_UBUNTU ?= y
-
-ifeq ($(CONFIG_PLATFORM_UBUNTU), y)
 KDIR  ?= /lib/modules/$(shell uname -r)/build
 #KDIR ?= ~/D/Workspace/CyberQuantum/Linux/linux-4.15/
 PWD   ?= $(shell pwd)
@@ -342,8 +338,6 @@ MODDESTDIR ?= /lib/modules/$(KVER)/kernel/drivers/net/wireless/aic8800
 SUBARCH = $(shell uname -m | sed -e s/i.86/i386/ -e s/armv.l/arm/ -e s/aarch64/arm64/)
 ARCH ?= $(SUBARCH)
 CROSS_COMPILE ?=
-endif
-
 
 all: modules
 modules:
