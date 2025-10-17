@@ -216,7 +216,6 @@ ccflags-$(CONFIG_RWNX_SDM) += -DCONFIG_RWNX_SDM
 ccflags-$(CONFIG_RWNX_TL4) += -DCONFIG_RWNX_TL4
 ccflags-$(CONFIG_RWNX_OLD_IPC) += -DCONFIG_RWNX_OLD_IPC
 ccflags-$(CONFIG_PLATFORM_NANOPI_M4) += -DCONFIG_NANOPI_M4
-ccflags-$(CONFIG_PLATFORM_INGENIC_T20) += -DCONFIG_INGENIC_T20
 ccflags-$(CONFIG_START_FROM_BOOTROM) += -DCONFIG_START_FROM_BOOTROM
 ccflags-$(CONFIG_PMIC_SETTING) += -DCONFIG_PMIC_SETTING
 ccflags-$(CONFIG_VRF_DCDC_MODE) += -DCONFIG_VRF_DCDC_MODE
@@ -306,18 +305,9 @@ ccflags-$(CONFIG_DOWNLOAD_FW)  += -DCONFIG_DOWNLOAD_FW
 ccflags-$(CONFIG_RX_NETIF_RECV_SKB) += -DCONFIG_RX_NETIF_RECV_SKB
 ccflags-$(CONFIG_USB_BT) += -DCONFIG_USB_BT
 
-# Platform support list
-CONFIG_PLATFORM_INGENIC_T20 ?= n
-
 ccflags-y += -DAIC_TRACE_INCLUDE_PATH=$(src)
 
 MAKEFLAGS +=-j$(shell nproc)
-
-ifeq ($(CONFIG_PLATFORM_INGENIC_T20), y)
-KDIR ?= /home/yaya/E/T40/kernel
-ARCH ?= mips
-CROSS_COMPILE ?= /home/yaya/E/T40/mips-linux-gnu-ingenic-gcc7.2.0-glibc2.29-fp64/bin/mips-linux-gnu-
-endif
 
 KDIR  ?= /lib/modules/$(shell uname -r)/build
 PWD   ?= $(shell pwd)
