@@ -6,9 +6,7 @@
 #include "md5.h"
 #include "aicbluetooth.h"
 #include "aicwf_debug.h"
-#ifdef CONFIG_USE_FW_REQUEST
 #include <linux/firmware.h>
-#endif
 
 //Parser state
 #define INIT 0
@@ -162,9 +160,8 @@ enum aicbsp_cpmode_type {
 #define AIC_HW_INFO 0x21
 
 #define FW_PATH_MAX 200
-static const char *aic_default_fw_path = "/lib/firmware/aic8800_fw/USB";
+static const char *aic_default_fw_path = "aic8800_fw/USB";
 char aic_fw_path[FW_PATH_MAX];
-module_param_string(aic_fw_path, aic_fw_path, FW_PATH_MAX, 0660);
 #ifdef CONFIG_M2D_OTA_AUTO_SUPPORT
 char saved_sdk_ver[64];
 module_param_string(saved_sdk_ver, saved_sdk_ver, 64, 0660);
@@ -191,59 +188,17 @@ void aic_bt_platform_deinit(struct aic_usb_dev *usbdev)
 static int aic_load_firmware(u32 **fw_buf, const char *name,
 			     struct device *device)
 {
-#ifdef CONFIG_USE_FW_REQUEST
-	const struct firmware *fw = NULL;
-	u32 *dst = NULL;
-	void *buffer = NULL;
-	MD5_CTX md5;
-	unsigned char decrypt[16];
-	int size = 0;
-	int ret = 0;
-
-	printk("%s: request firmware = %s \n", __func__, name);
-
-	ret = request_firmware(&fw, name, NULL);
-
-	if (ret < 0) {
-		printk("Load %s fail\n", name);
-		release_firmware(fw);
-		return -1;
-	}
-
-	size = fw->size;
-	dst = (u32 *)fw->data;
-
-	if (size <= 0) {
-		printk("wrong size of firmware file\n");
-		release_firmware(fw);
-		return -1;
-	}
-
-	buffer = vmalloc(size);
-	memset(buffer, 0, size);
-	memcpy(buffer, dst, size);
-
-	*fw_buf = buffer;
-
-	MD5Init(&md5);
-	MD5Update(&md5, (unsigned char *)buffer, size);
-	MD5Final(&md5, decrypt);
-	printk(MD5PINRT, MD5(decrypt));
-
-	release_firmware(fw);
-
-	return size;
-#else
-	void *buffer = NULL;
-	char *path = NULL;
-	struct file *fp = NULL;
-	int size = 0, len = 0; //, i=0;
-	ssize_t rdlen = 0;
-	//u32 *src=NULL, *dst = NULL;
-	MD5_CTX md5;
-	unsigned char decrypt[16];
 	struct aicwf_bus *bus_if = dev_get_drvdata(device);
 	struct aic_usb_dev *usb_dev = bus_if->bus_priv.usb;
+	const struct firmware *fw = NULL;
+	int ret = 0, size = 0, len = 0; // i = 0;
+	unsigned char decrypt[16];
+	void *buffer = NULL;
+	char *path = NULL;
+	u32 *dst = NULL;
+	MD5_CTX md5;
+
+	printk("%s: request firmware = %s \n", __func__, name);
 
 	/* get the firmware path */
 	path = __getname();
@@ -281,102 +236,37 @@ static int aic_load_firmware(u32 **fw_buf, const char *name,
 
 	printk("%s :firmware path = %s  \n", __func__, path);
 
-	/* open the firmware file */
-	fp = filp_open(path, O_RDONLY, 0);
-	if (IS_ERR(fp) || (!fp)) {
-		printk("%s: %s file failed to open\n", __func__, name);
-		if (IS_ERR(fp))
-			printk("is_Err\n");
-		if ((!fp))
-			printk("null\n");
-		*fw_buf = NULL;
-		__putname(path);
-		fp = NULL;
+	ret = request_firmware(&fw, path, NULL);
+
+	if (ret < 0) {
+		printk("Load %s fail\n", path);
+		release_firmware(fw);
 		return -1;
 	}
 
-	size = i_size_read(file_inode(fp));
+	size = fw->size;
+	dst = (u32 *)fw->data;
+
 	if (size <= 0) {
-		printk("%s: %s file size invalid %d\n", __func__, name, size);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
+		printk("wrong size of firmware file\n");
+		release_firmware(fw);
 		return -1;
 	}
 
-	/* start to read from firmware file */
 	buffer = vmalloc(size);
 	memset(buffer, 0, size);
-	if (!buffer) {
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return -1;
-	}
+	memcpy(buffer, dst, size);
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 16)
-	rdlen = kernel_read(fp, buffer, size, &fp->f_pos);
-#else
-	rdlen = kernel_read(fp, fp->f_pos, buffer, size);
-#endif
-
-	if (size != rdlen) {
-		printk("%s: %s file rdlen invalid %d %d\n", __func__, name,
-		       (int)rdlen, size);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		vfree(buffer);
-		buffer = NULL;
-		return -1;
-	}
-	if (rdlen > 0) {
-		fp->f_pos += rdlen;
-		//printk("f_pos=%d\n", (int)fp->f_pos);
-	}
-
-#if 0
-   /*start to transform the data format*/
-    src = (u32*)buffer;
-    //printk("malloc dst\n");
-    dst = (u32*)vmalloc(size);
-    memset(dst, 0, size);
-
-    if(!dst){
-            *fw_buf=NULL;
-            __putname(path);
-            filp_close(fp,NULL);
-            fp=NULL;
-            vfree(buffer);
-            buffer=NULL;
-            return -1;
-    }
-
-    for(i=0;i<(size/4);i++){
-            dst[i] = src[i];
-    }
-#endif
-
-	__putname(path);
-	filp_close(fp, NULL);
-	fp = NULL;
-	//vfree(buffer);
-	//buffer=NULL;
-	//*fw_buf = dst;
-	*fw_buf = (u32 *)buffer;
+	*fw_buf = buffer;
 
 	MD5Init(&md5);
-	//MD5Update(&md5, (unsigned char *)dst, size);
 	MD5Update(&md5, (unsigned char *)buffer, size);
 	MD5Final(&md5, decrypt);
-
 	printk(MD5PINRT, MD5(decrypt));
 
+	release_firmware(fw);
+
 	return size;
-#endif
 }
 
 int rwnx_plat_bin_fw_upload_android(struct aic_usb_dev *usbdev, u32 fw_addr,

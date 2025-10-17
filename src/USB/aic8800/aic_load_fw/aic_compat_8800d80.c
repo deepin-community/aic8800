@@ -381,7 +381,7 @@ static int aicbt_ext_patch_data_load(struct aic_usb_dev *usb_dev,
 {
 	int ret = 0;
 	uint32_t ext_patch_nb = patch_info->ext_patch_nb;
-	char ext_patch_file_name[50];
+	char ext_patch_file_name[FW_PATH_MAX];
 	int index = 0;
 	uint32_t id = 0;
 	uint32_t addr = 0;

@@ -30,8 +30,6 @@ CONFIG_RWNX_FHOST ?= n
 #
 # DEBUG OPTIONS
 CONFIG_RWNX_UM_HELPER_DFLT ?= "/dini/dini_bin/rwnx_umh.sh"
-CONFIG_AIC_FW_PATH = "/vendor/etc/firmware"
-export CONFIG_AIC_FW_PATH
 
 #
 # FW ARCH:
@@ -100,8 +98,6 @@ CONFIG_VENDOR_GPIO = n
 CONFIG_FWLOG_EN = n
 CONFIG_FOR_IPCAM = n
 CONFIG_5M10M = n
-# Need to set fw path in BOARD_KERNEL_CMDLINE
-CONFIG_USE_FW_REQUEST ?= n
 CONFIG_USE_P2P0 = n
 CONFIG_ONE_TXQ = n
 CONFIG_PER_STA_FC = n
@@ -311,7 +307,6 @@ ccflags-$(CONFIG_SET_VENDOR_EXTENSION_IE) += -DCONFIG_SET_VENDOR_EXTENSION_IE
 ccflags-$(CONFIG_FWLOG_EN) += -DCONFIG_FWLOG_EN
 ccflags-$(CONFIG_FOR_IPCAM) += -DCONFIG_FOR_IPCAM -DCONFIG_ONE_TXQ
 ccflags-$(CONFIG_5M10M) += -DCONFIG_5M10M
-ccflags-$(CONFIG_USE_FW_REQUEST) += -DCONFIG_USE_FW_REQUEST
 ccflags-$(CONFIG_USE_P2P0) += -DCONFIG_USE_P2P0
 ccflags-$(CONFIG_ONE_TXQ)  += -DCONFIG_ONE_TXQ
 ccflags-$(CONFIG_PER_STA_FC)  += -DCONFIG_PER_STA_FC
@@ -332,7 +327,7 @@ MAKEFLAGS +=-j$(shell nproc)
 
 KDIR  ?= /lib/modules/$(shell uname -r)/build
 #KDIR ?= ~/D/Workspace/CyberQuantum/Linux/linux-4.15/
-PWD   ?= $(shell pwd)
+PWD   = $(shell pwd)
 KVER ?= $(shell uname -r)
 MODDESTDIR ?= /lib/modules/$(KVER)/kernel/drivers/net/wireless/aic8800
 SUBARCH = $(shell uname -m | sed -e s/i.86/i386/ -e s/armv.l/arm/ -e s/aarch64/arm64/)

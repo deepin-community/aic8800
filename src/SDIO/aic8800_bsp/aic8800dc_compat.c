@@ -1825,7 +1825,7 @@ int aicwf_dpd_result_write_8800dc(void *buf, int buf_len)
 		return -1;
 	}
 
-	len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s", AICBSP_FW_PATH,
+	len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s", aic_fw_path,
 		       FW_DPDRESULT_NAME_8800DC);
 	printk("%s\n", path);
 

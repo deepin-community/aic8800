@@ -2182,17 +2182,10 @@ int aicwf_set_rf_config_8800dc(struct rwnx_hw *rwnx_hw,
 		if (chip_sub_id >= 1) {
 #ifdef CONFIG_DPD
 #ifndef CONFIG_FORCE_DPD_CALIB
-			if (is_file_exist(FW_DPDRESULT_NAME_8800DC) == 1) {
+			if (ret = aicwf_dpd_result_load_8800dc(rwnx_hw,
+							       &dpd_res) > 0) {
 				AICWFDBG(LOGINFO, "%s load dpd bin\n",
 					 __func__);
-				ret = aicwf_dpd_result_load_8800dc(rwnx_hw,
-								   &dpd_res);
-				if (ret) {
-					AICWFDBG(LOGINFO,
-						 "load dpd bin fail: %d\n",
-						 ret);
-					return ret;
-				}
 			}
 #endif
 			if (dpd_res.bit_mask[1]) {

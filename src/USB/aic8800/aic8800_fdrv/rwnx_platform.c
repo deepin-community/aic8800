@@ -34,9 +34,7 @@
 #include "aicwf_compat_8800dc.h"
 #include "aicwf_compat_8800d80.h"
 #include "aicwf_compat_8800d80x2.h"
-#ifdef CONFIG_USE_FW_REQUEST
 #include <linux/firmware.h>
-#endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 9, 0))
 static inline struct inode *file_inode(const struct file *f)
@@ -606,21 +604,40 @@ static int rwnx_plat_bin_fw_upload(struct rwnx_plat *rwnx_plat, u8* fw_addr,
 static int rwnx_load_firmware(u32 **fw_buf, const char *name,
 			      struct device *device)
 {
-#ifdef CONFIG_USE_FW_REQUEST
 	const struct firmware *fw = NULL;
-	u32 *dst = NULL;
-	void *buffer = NULL;
-	MD5_CTX md5;
+	int ret = 0, size = 0, len = 0; // i = 0;
 	unsigned char decrypt[16];
-	int size = 0;
-	int ret = 0;
+	void *buffer = NULL;
+	char *path = NULL;
+	u32 *dst = NULL;
+	MD5_CTX md5;
 
 	AICWFDBG(LOGINFO, "%s: request firmware = %s \n", __func__, name);
 
-	ret = request_firmware(&fw, name, NULL);
+	/* get the firmware path */
+	path = __getname();
+	if (!path) {
+		*fw_buf = NULL;
+		return -1;
+	}
+
+	len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s", aic_fw_path, name);
+
+	//len = snprintf(path, FW_PATH_MAX_LEN, "%s", name);
+	if (len >= FW_PATH_MAX_LEN) {
+		AICWFDBG(LOGERROR, "%s: %s file's path too long\n", __func__,
+			 name);
+		*fw_buf = NULL;
+		__putname(path);
+		return -1;
+	}
+
+	AICWFDBG(LOGINFO, "%s :firmware path = %s  \n", __func__, path);
+
+	ret = request_firmware(&fw, path, NULL);
 
 	if (ret < 0) {
-		AICWFDBG(LOGERROR, "Load %s fail\n", name);
+		AICWFDBG(LOGERROR, "Load %s fail\n", path);
 		release_firmware(fw);
 		return -1;
 	}
@@ -648,124 +665,6 @@ static int rwnx_load_firmware(u32 **fw_buf, const char *name,
 	release_firmware(fw);
 
 	return size;
-#else
-	void *buffer = NULL;
-	char *path = NULL;
-	struct file *fp = NULL;
-	int size = 0, len = 0; // i = 0;
-	ssize_t rdlen = 0;
-	//u32 *src = NULL, *dst = NULL;
-	MD5_CTX md5;
-	unsigned char decrypt[16];
-
-	/* get the firmware path */
-	path = __getname();
-	if (!path) {
-		*fw_buf = NULL;
-		return -1;
-	}
-
-	len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s", aic_fw_path, name);
-
-	//len = snprintf(path, FW_PATH_MAX_LEN, "%s", name);
-	if (len >= FW_PATH_MAX_LEN) {
-		AICWFDBG(LOGERROR, "%s: %s file's path too long\n", __func__,
-			 name);
-		*fw_buf = NULL;
-		__putname(path);
-		return -1;
-	}
-
-	AICWFDBG(LOGINFO, "%s :firmware path = %s  \n", __func__, path);
-
-	/* open the firmware file */
-	fp = filp_open(path, O_RDONLY, 0);
-	if (IS_ERR_OR_NULL(fp)) {
-		AICWFDBG(LOGERROR, "%s: %s file failed to open\n", __func__,
-			 name);
-		*fw_buf = NULL;
-		__putname(path);
-		fp = NULL;
-		return -1;
-	}
-
-	size = i_size_read(file_inode(fp));
-	if (size <= 0) {
-		AICWFDBG(LOGERROR, "%s: %s file size invalid %d\n", __func__,
-			 name, size);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return -1;
-	}
-
-	/* start to read from firmware file */
-	buffer = vmalloc(size);
-	if (!buffer) {
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return -1;
-	}
-
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 16)
-	rdlen = kernel_read(fp, buffer, size, &fp->f_pos);
-#else
-	rdlen = kernel_read(fp, fp->f_pos, buffer, size);
-#endif
-
-	if (size != rdlen) {
-		AICWFDBG(LOGERROR, "%s: %s file rdlen invalid %d\n", __func__,
-			 name, (int)rdlen);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		vfree(buffer);
-		buffer = NULL;
-		return -1;
-	}
-	if (rdlen > 0) {
-		fp->f_pos += rdlen;
-	}
-
-#if 0
-    /*start to transform the data format*/
-    src = (u32 *)buffer;
-    dst = (u32 *)vmalloc(size);
-
-    if (!dst) {
-        *fw_buf = NULL;
-        __putname(path);
-        filp_close(fp, NULL);
-        fp = NULL;
-        vfree(buffer);
-        buffer = NULL;
-        return -1;
-    }
-
-    for (i = 0; i < (size/4); i++) {
-        dst[i] = src[i];
-    }
-#endif
-
-	__putname(path);
-	filp_close(fp, NULL);
-	fp = NULL;
-	//vfree(buffer);
-	//buffer = NULL;
-	*fw_buf = (u32 *)buffer;
-
-	MD5Init(&md5);
-	MD5Update(&md5, (unsigned char *)buffer, size);
-	MD5Final(&md5, decrypt);
-
-	AICWFDBG(LOGINFO, MD5PINRT, MD5(decrypt));
-
-	return size;
-#endif
 }
 
 static void rwnx_restore_firmware(u32 **fw_buf)
@@ -1366,34 +1265,7 @@ static void rwnx_plat_mpif_sel(struct rwnx_plat *rwnx_plat)
 #endif
 }
 #endif
-#if (defined(CONFIG_DPD) && !defined(CONFIG_FORCE_DPD_CALIB))
-int is_file_exist(char *name)
-{
-	char *path = NULL;
-	struct file *fp = NULL;
-	int len;
 
-	path = __getname();
-	if (!path) {
-		AICWFDBG(LOGINFO, "%s getname fail\n", __func__);
-		return -1;
-	}
-
-	len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s", aic_fw_path, name);
-
-	fp = filp_open(path, O_RDONLY, 0);
-	if (IS_ERR(fp)) {
-		__putname(path);
-		fp = NULL;
-		return 0;
-	} else {
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return 1;
-	}
-}
-#endif //CONFIG_DPD && !CONFIG_FORCE_DPD_CALIB
 /**
  * rwnx_plat_patch_load() - Load patch code
  *
@@ -1456,18 +1328,14 @@ static int rwnx_plat_patch_load(struct rwnx_hw *rwnx_hw)
 					}
 				}
 #else
-				if (is_file_exist(FW_DPDRESULT_NAME_8800DC) ==
-				    1) {
+				if (aicwf_dpd_result_load_8800dc(
+					    rwnx_hw, &dpd_res) > 0) {
 					AICWFDBG(LOGINFO, "dpd bin load\n");
-					ret = aicwf_dpd_result_load_8800dc(
-						rwnx_hw, &dpd_res);
-					if (ret) {
-						AICWFDBG(
-							LOGINFO,
-							"load dpd bin fail: %d\n",
-							ret);
-						return ret;
-					}
+
+					AICWFDBG(LOGINFO,
+						 "load dpd bin fail: %d\n",
+						 ret);
+
 					ret = aicwf_dpd_result_apply_8800dc(
 						rwnx_hw, &dpd_res);
 					if (ret) {
@@ -1568,18 +1436,10 @@ static int rwnx_plat_patch_load(struct rwnx_hw *rwnx_hw)
 				/* Note: apply dpd_res after rftest running */
 			} else if (testmode == FW_DPDCALIB_MODE) {
 #if (defined(CONFIG_DPD) && !defined(CONFIG_FORCE_DPD_CALIB))
-				if (is_file_exist(FW_DPDRESULT_NAME_8800DC) ==
-				    0) {
+				if (ret = aicwf_plat_patch_load_8800dc(
+						  rwnx_hw) > 0) {
 					AICWFDBG(LOGINFO, "patch load\n");
-					ret = aicwf_plat_patch_load_8800dc(
-						rwnx_hw);
-					if (ret) {
-						AICWFDBG(
-							LOGINFO,
-							"load patch bin fail: %d\n",
-							ret);
-						return ret;
-					}
+
 					//aicwf_patch_config_8800dc(rwnx_hw);
 					AICWFDBG(LOGINFO,
 						 "dpd calib & write\n");

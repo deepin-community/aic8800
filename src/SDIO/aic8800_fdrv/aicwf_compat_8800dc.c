@@ -302,9 +302,6 @@ u32 wifi_rxgain_table_24g_40m_8800dcdw[64] = {
 
 #define RAM_LMAC_FW_ADDR 0x00150000
 #ifdef CONFIG_DPD
-#if (defined(CONFIG_DPD) && !defined(CONFIG_FORCE_DPD_CALIB))
-extern int is_file_exist(char *name);
-#endif
 extern rf_misc_ram_lite_t dpd_res;
 
 int aicwf_fdrv_dpd_result_apply_8800dc(struct rwnx_hw *rwnx_hw,
@@ -566,17 +563,10 @@ int aicwf_set_rf_config_8800dc(struct rwnx_hw *rwnx_hw,
 		if (chip_sub_id >= 1) {
 #ifdef CONFIG_DPD
 #ifndef CONFIG_FORCE_DPD_CALIB
-			if (is_file_exist(FW_DPDRESULT_NAME_8800DC) == 1) {
+			if (ret = aicwf_fdrv_dpd_result_load_8800dc(
+					  rwnx_hw, &dpd_res) > 0) {
 				AICWFDBG(LOGINFO, "%s load dpd bin\n",
 					 __func__);
-				ret = aicwf_fdrv_dpd_result_load_8800dc(
-					rwnx_hw, &dpd_res);
-				if (ret) {
-					AICWFDBG(LOGINFO,
-						 "load dpd bin fail: %d\n",
-						 ret);
-					return ret;
-				}
 			}
 #endif
 			if (dpd_res.bit_mask[1]) {

@@ -2,8 +2,6 @@ MODULE_NAME = aic_btusb
 
 CONFIG_AIC8800_BTUSB_SUPPORT = m
 CONFIG_SUPPORT_VENDOR_APCF = n
-# Need to set fw path in BOARD_KERNEL_CMDLINE
-CONFIG_USE_FW_REQUEST = n
 
 ifeq ($(CONFIG_SUPPORT_VENDOR_APCF), y)
 obj-$(CONFIG_AIC8800_BTUSB_SUPPORT) := $(MODULE_NAME).o aic_btusb_external_featrue.o
@@ -14,8 +12,6 @@ endif
 ccflags-$(CONFIG_SUPPORT_VENDOR_APCF) += -DCONFIG_SUPPORT_VENDOR_APCF
 #$(MODULE_NAME)-y := aic_btusb_ioctl.o\
 #	aic_btusb.o \
-
-ccflags-$(CONFIG_USE_FW_REQUEST) += -DCONFIG_USE_FW_REQUEST
 
 KDIR  ?= /lib/modules/$(shell uname -r)/build
 PWD   := $(shell pwd)

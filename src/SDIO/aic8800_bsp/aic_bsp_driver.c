@@ -31,7 +31,7 @@
 #define FW_PATH_MAX 200
 
 extern int adap_test;
-extern char aic_fw_path[FW_PATH_MAX];
+extern const char *aic_fw_path;
 extern struct aic_sdio_dev *aicbsp_sdiodev;
 
 static void cmd_dump(const struct rwnx_cmd *cmd)
@@ -508,21 +508,40 @@ MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
 
 int rwnx_load_firmware(u32 **fw_buf, const char *name, struct device *device)
 {
-#ifdef CONFIG_USE_FW_REQUEST
 	const struct firmware *fw = NULL;
-	u32 *dst = NULL;
-	void *buffer = NULL;
-	MD5_CTX md5;
 	unsigned char decrypt[16];
-	int size = 0;
+	int size = 0, len = 0; // i = 0;
+	void *buffer = NULL;
+	char *path = NULL;
+	u32 *dst = NULL;
+	MD5_CTX md5;
 	int ret = 0;
 
 	printk("%s: request firmware = %s \n", __func__, name);
 
-	ret = request_firmware(&fw, name, NULL);
+	/* get the firmware path */
+	path = __getname();
+	if (!path) {
+		*fw_buf = NULL;
+		return -1;
+	}
+
+	if (strlen(aic_fw_path) > 0) {
+		len = snprintf(path, FW_PATH_MAX, "%s/%s", aic_fw_path, name);
+	}
+	if (len >= FW_PATH_MAX) {
+		printk("%s: %s file's path too long\n", __func__, name);
+		*fw_buf = NULL;
+		__putname(path);
+		return -1;
+	}
+
+	printk("%s :firmware path = %s  \n", __func__, path);
+
+	ret = request_firmware(&fw, path, NULL);
 
 	if (ret < 0) {
-		printk("Load %s fail\n", name);
+		printk("Load %s fail\n", path);
 		release_firmware(fw);
 		return -1;
 	}
@@ -550,141 +569,6 @@ int rwnx_load_firmware(u32 **fw_buf, const char *name, struct device *device)
 	release_firmware(fw);
 
 	return size;
-#else
-	void *buffer = NULL;
-	char *path = NULL;
-	struct file *fp = NULL;
-	int size = 0, len = 0; // i = 0;
-	ssize_t rdlen = 0;
-	//u32 *src = NULL, *dst = NULL;
-	MD5_CTX md5;
-	unsigned char decrypt[16];
-
-#ifdef CONFIG_FIRMWARE_ARRAY
-	size = aicwf_get_firmware_array((char *)name, fw_buf);
-	printk("%s size:%d \r\n", __func__, size);
-	MD5Init(&md5);
-	MD5Update(&md5, (unsigned char *)*fw_buf, size);
-	MD5Final(&md5, decrypt);
-	printk(MD5PINRT, MD5(decrypt));
-
-	return size;
-#endif
-
-	/* get the firmware path */
-	path = __getname();
-	if (!path) {
-		*fw_buf = NULL;
-		return -1;
-	}
-
-	if (strlen(aic_fw_path) > 0) {
-		len = snprintf(path, AICBSP_FW_PATH_MAX, "%s/%s", aic_fw_path,
-			       name);
-	} else {
-		len = snprintf(path, AICBSP_FW_PATH_MAX, "%s/%s",
-			       AICBSP_FW_PATH, name);
-	}
-	if (len >= AICBSP_FW_PATH_MAX) {
-		printk("%s: %s file's path too long\n", __func__, name);
-		*fw_buf = NULL;
-		__putname(path);
-		return -1;
-	}
-
-	printk("%s :firmware path = %s  \n", __func__, path);
-
-	/* open the firmware file */
-	fp = filp_open(path, O_RDONLY, 0);
-	if (IS_ERR_OR_NULL(fp)) {
-		printk("%s: %s file failed to open\n", __func__, name);
-		*fw_buf = NULL;
-		__putname(path);
-		fp = NULL;
-		return -1;
-	}
-
-	size = i_size_read(file_inode(fp));
-	if (size <= 0) {
-		printk("%s: %s file size invalid %d\n", __func__, name, size);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return -1;
-	}
-
-	/* start to read from firmware file */
-	buffer = vmalloc(size);
-
-	if (!buffer) {
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return -1;
-	} else {
-		memset(buffer, 0, size);
-	}
-
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 16)
-	rdlen = kernel_read(fp, buffer, size, &fp->f_pos);
-#else
-	rdlen = kernel_read(fp, fp->f_pos, buffer, size);
-#endif
-
-	if (size != rdlen) {
-		printk("%s: %s file rdlen invalid %ld\n", __func__, name,
-		       (long int)rdlen);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		vfree(buffer);
-		buffer = NULL;
-		return -1;
-	}
-	if (rdlen > 0) {
-		fp->f_pos += rdlen;
-	}
-
-#if 0
-	/*start to transform the data format*/
-	src = (u32 *)buffer;
-	dst = (u32 *)vmalloc(size);
-
-	if (!dst) {
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		vfree(buffer);
-		buffer = NULL;
-		return -1;
-	}else{
-		memset(dst, 0, size);
-	}
-
-	for (i = 0; i < (size/4); i++) {
-		dst[i] = src[i];
-	}
-#endif
-
-	__putname(path);
-	filp_close(fp, NULL);
-	fp = NULL;
-	//vfree(buffer);
-	//buffer = NULL;
-	*fw_buf = (u32 *)buffer;
-
-	MD5Init(&md5);
-	MD5Update(&md5, (unsigned char *)buffer, size);
-	MD5Final(&md5, decrypt);
-
-	printk(MD5PINRT, MD5(decrypt));
-
-	return size;
-#endif
 }
 
 extern int testmode;
@@ -1017,7 +901,6 @@ int aicwf_patch_table_load(struct aic_sdio_dev *rwnx_hw, char *filename)
 	return err;
 }
 
-extern char aic_fw_path[200];
 int aicwf_plat_patch_load_8800dc(struct aic_sdio_dev *sdiodev)
 {
 	int ret = 0;
@@ -1160,39 +1043,6 @@ int aicwf_plat_calib_load_8800dc(struct aic_sdio_dev *sdiodev)
 #endif
 
 #ifdef CONFIG_DPD
-#ifndef CONFIG_FORCE_DPD_CALIB
-int is_file_exist(char *name)
-{
-	char *path = NULL;
-	struct file *fp = NULL;
-	int len;
-
-	path = __getname();
-	if (!path) {
-		AICWFDBG(LOGINFO, "%s getname fail\n", __func__);
-		return -1;
-	}
-
-	len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s", AICBSP_FW_PATH, name);
-
-	fp = filp_open(path, O_RDONLY, 0);
-	if (IS_ERR(fp)) {
-		__putname(path);
-		fp = NULL;
-		return 0;
-	} else {
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return 1;
-	}
-}
-
-EXPORT_SYMBOL(is_file_exist);
-#endif
-#endif
-
-#ifdef CONFIG_DPD
 rf_misc_ram_lite_t dpd_res = {
 	{ 0 },
 };
@@ -1259,18 +1109,10 @@ static int rwnx_plat_patch_load(struct aic_sdio_dev *sdiodev)
 					}
 				}
 #else
-				if (is_file_exist(FW_DPDRESULT_NAME_8800DC) ==
-				    1) {
+				if (ret = aicwf_dpd_result_load_8800dc(
+						  sdiodev, &dpd_res) > 0) {
 					AICWFDBG(LOGINFO, "dpd bin load\n");
-					ret = aicwf_dpd_result_load_8800dc(
-						sdiodev, &dpd_res);
-					if (ret) {
-						AICWFDBG(
-							LOGINFO,
-							"load dpd bin fail: %d\n",
-							ret);
-						return ret;
-					}
+
 					ret = aicwf_dpd_result_apply_8800dc(
 						sdiodev, &dpd_res);
 					if (ret) {
@@ -1367,18 +1209,10 @@ static int rwnx_plat_patch_load(struct aic_sdio_dev *sdiodev)
 				}
 			} else if (testmode == FW_DPDCALIB_MODE) {
 #if (defined(CONFIG_DPD) && !defined(CONFIG_FORCE_DPD_CALIB))
-				if (is_file_exist(FW_DPDRESULT_NAME_8800DC) ==
-				    0) {
+				if (ret = aicwf_plat_patch_load_8800dc(
+						  sdiodev) > 0) {
 					AICWFDBG(LOGINFO, "patch load\n");
-					ret = aicwf_plat_patch_load_8800dc(
-						sdiodev);
-					if (ret) {
-						AICWFDBG(
-							LOGINFO,
-							"load patch bin fail: %d\n",
-							ret);
-						return ret;
-					}
+
 					AICWFDBG(LOGINFO,
 						 "dpd calib & write\n");
 					ret = aicwf_dpd_calib_8800dc(sdiodev,
@@ -1610,7 +1444,7 @@ int aicbt_ext_patch_data_load(struct aic_sdio_dev *sdiodev,
 {
 	int ret = 0;
 	uint32_t ext_patch_nb = patch_info->ext_patch_nb;
-	char ext_patch_file_name[50];
+	char ext_patch_file_name[FW_PATH_MAX_LEN];
 	int index = 0;
 	uint32_t id = 0;
 	uint32_t addr = 0;
@@ -2359,9 +2193,6 @@ int aicbsp_get_feature(struct aicbsp_feature_t *feature, char *fw_path)
 	feature->hwinfo = aicbsp_info.hwinfo;
 	feature->fwlog_en = aicbsp_info.fwlog_en;
 	feature->irqf = aicbsp_info.irqf;
-	if (fw_path != NULL) {
-		sprintf(fw_path, "%s", AICBSP_FW_PATH);
-	}
 
 	sdio_dbg("%s, set FEATURE_SDIO_CLOCK %d MHz\n", __func__,
 		 feature->sdio_clock / 1000000);

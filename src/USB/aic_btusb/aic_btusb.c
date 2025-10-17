@@ -42,9 +42,7 @@
 
 #include "aic_btusb.h"
 
-#ifdef CONFIG_USE_FW_REQUEST
 #include <linux/firmware.h>
-#endif
 
 #define AICBT_RELEASE_NAME "202012_ANDROID"
 #define VERSION "2.1.0"
@@ -2428,17 +2426,10 @@ struct aicbsp_info_t aicbsp_info = {
 	.cpmode = AICBSP_CPMODE_DEFAULT,
 };
 
-#ifndef CONFIG_USE_FW_REQUEST
 #define FW_PATH_MAX 200
 
 char aic_fw_path[FW_PATH_MAX];
-#if (CONFIG_BLUEDROID == 0)
-static const char *aic_default_fw_path =
-	"/lib/firmware/aic8800_fw/USB/aic8800DC";
-#else
-static const char *aic_default_fw_path = "/vendor/etc/firmware";
-#endif
-#endif //CONFIG_USE_FW_REQUEST
+static const char *aic_default_fw_path = "aic8800_fw/USB/aic8800DC";
 
 static struct aicbt_info_t aicbt_info = {
 	.btmode = AICBT_BTMODE_DEFAULT,
@@ -2564,48 +2555,14 @@ out:
 
 int aic_load_firmware(u8 **fw_buf, const char *name, struct device *device)
 {
-#ifdef CONFIG_USE_FW_REQUEST
 	const struct firmware *fw = NULL;
-	u32 *dst = NULL;
+	int ret = 0, size = 0, len = 0; // i = 0;
+	unsigned char decrypt[16];
 	void *buffer = NULL;
-	int size = 0;
-	int ret = 0;
+	char *path = NULL;
+	u32 *dst = NULL;
 
 	printk("%s: request firmware = %s \n", __func__, name);
-
-	ret = request_firmware(&fw, name, NULL);
-
-	if (ret < 0) {
-		printk("Load %s fail\n", name);
-		release_firmware(fw);
-		return -1;
-	}
-
-	size = fw->size;
-	dst = (u32 *)fw->data;
-
-	if (size <= 0) {
-		printk("wrong size of firmware file\n");
-		release_firmware(fw);
-		return -1;
-	}
-
-	buffer = vmalloc(size);
-	memset(buffer, 0, size);
-	memcpy(buffer, dst, size);
-
-	*fw_buf = buffer;
-
-	release_firmware(fw);
-
-	return size;
-
-#else
-	u8 *buffer = NULL;
-	char *path = NULL;
-	struct file *fp = NULL;
-	int size = 0, len = 0;
-	ssize_t rdlen = 0;
 
 	/* get the firmware path */
 	path = __getname();
@@ -2631,74 +2588,32 @@ int aic_load_firmware(u8 **fw_buf, const char *name, struct device *device)
 
 	printk("%s :firmware path = %s  \n", __func__, path);
 
-	/* open the firmware file */
-	fp = filp_open(path, O_RDONLY, 0);
-	if (IS_ERR(fp) || (!fp)) {
-		printk("%s: %s file failed to open\n", __func__, name);
-		if (IS_ERR(fp))
-			printk("is_Err\n");
-		if ((!fp))
-			printk("null\n");
-		*fw_buf = NULL;
-		__putname(path);
-		fp = NULL;
+	ret = request_firmware(&fw, path, NULL);
+
+	if (ret < 0) {
+		printk("Load %s fail\n", path);
+		release_firmware(fw);
 		return -1;
 	}
 
-	size = i_size_read(file_inode(fp));
+	size = fw->size;
+	dst = (u32 *)fw->data;
+
 	if (size <= 0) {
-		printk("%s: %s file size invalid %d\n", __func__, name, size);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
+		printk("wrong size of firmware file\n");
+		release_firmware(fw);
 		return -1;
 	}
 
-	/* start to read from firmware file */
 	buffer = vmalloc(size);
 	memset(buffer, 0, size);
-	if (!buffer) {
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return -1;
-	}
+	memcpy(buffer, dst, size);
 
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 16)
-	rdlen = kernel_read(fp, buffer, size, &fp->f_pos);
-#else
-	rdlen = kernel_read(fp, fp->f_pos, buffer, size);
-#endif
-
-	if (size != rdlen) {
-		printk("%s: %s file rdlen invalid %d %d\n", __func__, name,
-		       (int)rdlen, size);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		vfree(buffer);
-		buffer = NULL;
-		return -1;
-	}
-	if (rdlen > 0) {
-		fp->f_pos += rdlen;
-		//printk("f_pos=%d\n", (int)fp->f_pos);
-	}
 	*fw_buf = buffer;
 
-#if 0
-    MD5Init(&md5);
-    MD5Update(&md5, (unsigned char *)dst, size);
-    MD5Final(&md5, decrypt);
+	release_firmware(fw);
 
-    printk(MD5PINRT, MD5(decrypt));
-
-#endif
 	return size;
-#endif
 }
 
 int aicbt_patch_table_free(struct aicbt_patch_table **head)
@@ -2896,7 +2811,7 @@ int aicbt_ext_patch_data_load(firmware_info *fw_info,
 {
 	int ret = 0;
 	uint32_t ext_patch_nb = patch_info->ext_patch_nb;
-	char ext_patch_file_name[50];
+	char ext_patch_file_name[FW_PATH_MAX];
 	int index = 0;
 	uint32_t id = 0;
 	uint32_t addr = 0;

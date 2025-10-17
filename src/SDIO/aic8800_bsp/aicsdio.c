@@ -33,9 +33,7 @@ static bool aicbsp_load_fw_in_fdrv = false;
 
 #define FW_PATH_MAX 200
 
-static const char *aic_default_fw_path = CONFIG_AIC_FW_PATH;
-char aic_fw_path[FW_PATH_MAX];
-module_param_string(aic_fw_path, aic_fw_path, FW_PATH_MAX, 0660);
+const char *aic_fw_path = "aic8800_fw/SDIO/AIC8800D80";
 #ifdef CONFIG_M2D_OTA_AUTO_SUPPORT
 char saved_sdk_ver[64];
 module_param_string(saved_sdk_ver, saved_sdk_ver, 64, 0660);
@@ -1950,12 +1948,7 @@ fail:
 
 void get_fw_path(char *fw_path)
 {
-	if (strlen(aic_fw_path) > 0) {
-		memcpy(fw_path, aic_fw_path, strlen(aic_fw_path));
-	} else {
-		memcpy(fw_path, aic_default_fw_path,
-		       strlen(aic_default_fw_path));
-	}
+	memcpy(fw_path, aic_fw_path, strlen(aic_fw_path));
 }
 
 int get_testmode(void)

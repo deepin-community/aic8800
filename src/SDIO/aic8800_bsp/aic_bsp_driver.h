@@ -339,14 +339,10 @@ void rwnx_rx_handle_msg(struct aic_sdio_dev *sdiodev, struct ipc_e2a_msg *msg);
 int aicbsp_platform_init(struct aic_sdio_dev *sdiodev);
 void aicbsp_platform_deinit(struct aic_sdio_dev *sdiodev);
 int aicbsp_driver_fw_init(struct aic_sdio_dev *sdiodev);
-#if (defined(CONFIG_DPD) && !defined(CONFIG_FORCE_DPD_CALIB))
-int is_file_exist(char *name);
-#endif
 int aicbsp_resv_mem_init(void);
 int aicbsp_resv_mem_deinit(void);
 
-#define AICBSP_FW_PATH CONFIG_AIC_FW_PATH
-#define AICBSP_FW_PATH_MAX 200
+#define FW_PATH_MAX 200
 
 #define RAM_FMAC_FW_ADDR 0x00120000
 #define RAM_FMAC_FW_PATCH_ADDR 0x00190000

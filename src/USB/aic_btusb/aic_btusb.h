@@ -41,6 +41,8 @@
 #define CONFIG_USB_AIC_UART_SCO_DRIVER
 //#define CONFIG_BT_WAKEUP_IN_PM
 
+#define FW_PATH_MAX 200
+
 #ifdef CONFIG_SCO_OVER_HCI
 #include <linux/usb/audio.h>
 #include <sound/core.h>

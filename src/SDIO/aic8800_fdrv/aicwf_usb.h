@@ -12,6 +12,8 @@
 #include <linux/usb.h>
 #include "rwnx_cmds.h"
 
+#define FW_PATH_MAX 200
+
 #ifdef AICWF_USB_SUPPORT
 
 /* USB Device ID */

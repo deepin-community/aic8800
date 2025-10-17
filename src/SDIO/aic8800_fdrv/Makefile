@@ -88,7 +88,6 @@ CONFIG_HE_FOR_OLD_KERNEL ?= n
 CONFIG_PREALLOC_RX_SKB ?= n
 CONFIG_WIFI_SUSPEND_FOR_LINUX = n
 # Need to set fw path in BOARD_KERNEL_CMDLINE
-CONFIG_USE_FW_REQUEST ?= n
 CONFIG_USE_P2P0=n
 CONFIG_TX_NETIF_FLOWCTRL = n
 CONFIG_ONE_TXQ = n
@@ -246,7 +245,6 @@ ccflags-y += -DCONFIG_RWNX_FULLMAC
 ccflags-y += -I$(srctree)
 ccflags-y += -I$(srctree)/$(src)
 ccflags-y += -I$(srctree)/$(src)/../aic8800_bsp
-ccflags-y += -DCONFIG_AIC_FW_PATH=\"$(CONFIG_AIC_FW_PATH)\"
 ccflags-$(CONFIG_RWNX_RADAR) += -DCONFIG_RWNX_RADAR
 ccflags-$(CONFIG_RWNX_MON_DATA) += -DCONFIG_RWNX_MON_DATA
 ccflags-$(CONFIG_RWNX_MON_XMIT) += -DCONFIG_RWNX_MON_XMIT
@@ -272,7 +270,6 @@ ccflags-$(CONFIG_WPA3_FOR_OLD_KERNEL) += -DCONFIG_WPA3_FOR_OLD_KERNEL
 ccflags-$(CONFIG_VHT_FOR_OLD_KERNEL) += -DCONFIG_VHT_FOR_OLD_KERNEL
 ccflags-$(CONFIG_PREALLOC_RX_SKB) += -DCONFIG_PREALLOC_RX_SKB
 ccflags-$(CONFIG_WIFI_SUSPEND_FOR_LINUX) += -DCONFIG_WIFI_SUSPEND_FOR_LINUX
-ccflags-$(CONFIG_USE_FW_REQUEST) += -DCONFIG_USE_FW_REQUEST
 ccflags-$(CONFIG_USE_P2P0) += -DCONFIG_USE_P2P0
 ccflags-$(CONFIG_FDRV_NO_REG_SDIO) += -DCONFIG_FDRV_NO_REG_SDIO
 ccflags-$(CONFIG_SCHED_SCAN) += -DCONFIG_SCHED_SCAN
@@ -338,7 +335,7 @@ MAKEFLAGS +=-j$(shell nproc)
 
 ########## Platform support list ##########
 KDIR  ?= /lib/modules/$(shell uname -r)/build
-PWD   ?= $(shell pwd)
+PWD   = $(shell pwd)
 KVER ?= $(shell uname -r)
 MODDESTDIR ?= /lib/modules/$(KVER)/kernel/drivers/net/wireless/
 ARCH ?= x86_64

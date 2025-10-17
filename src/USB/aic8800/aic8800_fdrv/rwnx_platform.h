@@ -130,7 +130,6 @@ void rwnx_platform_deinit(struct rwnx_hw *rwnx_hw);
 int rwnx_platform_on(struct rwnx_hw *rwnx_hw, void *config);
 void rwnx_platform_off(struct rwnx_hw *rwnx_hw, void **config);
 
-int is_file_exist(char *name);
 void get_userconfig_txpwr_lvl_in_fdrv(txpwr_lvl_conf_t *txpwr_lvl);
 void get_userconfig_txpwr_lvl_v2_in_fdrv(txpwr_lvl_conf_v2_t *txpwr_lvl_v2);
 void get_userconfig_txpwr_lvl_v3_in_fdrv(txpwr_lvl_conf_v3_t *txpwr_lvl_v3);

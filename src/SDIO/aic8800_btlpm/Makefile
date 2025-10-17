@@ -18,7 +18,7 @@ ccflags-y += -DAIC_TRACE_INCLUDE_PATH=$(src)
 ccflags-$(CONFIG_AUTO_PM) += -DCONFIG_AUTO_PM
 
 KDIR  ?= /lib/modules/$(shell uname -r)/build
-PWD   ?= $(shell pwd)
+PWD   = $(shell pwd)
 KVER ?= $(shell uname -r)
 MODDESTDIR ?= /lib/modules/$(KVER)/kernel/drivers/net/wireless/
 ARCH ?= x86_64

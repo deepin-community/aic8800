@@ -35,9 +35,7 @@
 #include "aicwf_compat_8800dc.h"
 #include "aicwf_compat_8800d80.h"
 
-#ifdef CONFIG_USE_FW_REQUEST
 #include <linux/firmware.h>
-#endif
 
 #define FW_PATH_MAX_LEN 200
 extern char aic_fw_path[FW_PATH_MAX_LEN];
@@ -622,21 +620,45 @@ static int rwnx_plat_bin_fw_upload(struct rwnx_plat *rwnx_plat, u8 *fw_addr,
 static int rwnx_load_firmware(struct rwnx_hw *rwnx_hw, u32 **fw_buf,
 			      const char *name, struct device *device)
 {
-#ifdef CONFIG_USE_FW_REQUEST
 	const struct firmware *fw = NULL;
-	u32 *dst = NULL;
-	void *buffer = NULL;
-	MD5_CTX md5;
+	int ret = 0, size = 0, len = 0; // i = 0;
 	unsigned char decrypt[16];
-	int size = 0;
-	int ret = 0;
+	void *buffer = NULL;
+	char *path = NULL;
+	u32 *dst = NULL;
+	MD5_CTX md5;
 
 	printk("%s: request firmware = %s \n", __func__, name);
 
-	ret = request_firmware(&fw, name, NULL);
+	/* get the firmware path */
+	path = __getname();
+	if (!path) {
+		*fw_buf = NULL;
+		return -1;
+	}
+
+	if (rwnx_hw->pcidev->chip_id == PRODUCT_ID_AIC8800D80)
+		len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s", aic_fw_path,
+			       name);
+	else
+		len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s",
+			       aic_fw_path_8800d80x2, name);
+
+	//len = snprintf(path, FW_PATH_MAX_LEN, "%s", name);
+	if (len >= FW_PATH_MAX_LEN) {
+		AICWFDBG(LOGERROR, "%s: %s file's path too long\n", __func__,
+			 name);
+		*fw_buf = NULL;
+		__putname(path);
+		return -1;
+	}
+
+	AICWFDBG(LOGINFO, "%s :firmware path = %s  \n", __func__, path);
+
+	ret = request_firmware(&fw, path, NULL);
 
 	if (ret < 0) {
-		printk("Load %s fail\n", name);
+		printk("Load %s fail\n", path);
 		release_firmware(fw);
 		return -1;
 	}
@@ -664,129 +686,6 @@ static int rwnx_load_firmware(struct rwnx_hw *rwnx_hw, u32 **fw_buf,
 	release_firmware(fw);
 
 	return size;
-#else
-	void *buffer = NULL;
-	char *path = NULL;
-	struct file *fp = NULL;
-	int size = 0, len = 0; // i = 0;
-	ssize_t rdlen = 0;
-	//u32 *src = NULL, *dst = NULL;
-	MD5_CTX md5;
-	unsigned char decrypt[16];
-
-	/* get the firmware path */
-	path = __getname();
-	if (!path) {
-		*fw_buf = NULL;
-		return -1;
-	}
-
-	if (rwnx_hw->pcidev->chip_id == PRODUCT_ID_AIC8800D80)
-		len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s", aic_fw_path,
-			       name);
-	else
-		len = snprintf(path, FW_PATH_MAX_LEN, "%s/%s",
-			       aic_fw_path_8800d80x2, name);
-
-	//len = snprintf(path, FW_PATH_MAX_LEN, "%s", name);
-	if (len >= FW_PATH_MAX_LEN) {
-		AICWFDBG(LOGERROR, "%s: %s file's path too long\n", __func__,
-			 name);
-		*fw_buf = NULL;
-		__putname(path);
-		return -1;
-	}
-
-	AICWFDBG(LOGINFO, "%s :firmware path = %s  \n", __func__, path);
-
-	/* open the firmware file */
-	fp = filp_open(path, O_RDONLY, 0);
-	if (IS_ERR_OR_NULL(fp)) {
-		AICWFDBG(LOGERROR, "%s: %s file failed to open\n", __func__,
-			 name);
-		*fw_buf = NULL;
-		__putname(path);
-		fp = NULL;
-		return -1;
-	}
-
-	size = i_size_read(file_inode(fp));
-	if (size <= 0) {
-		AICWFDBG(LOGERROR, "%s: %s file size invalid %d\n", __func__,
-			 name, size);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return -1;
-	}
-
-	/* start to read from firmware file */
-	buffer = kzalloc(size, GFP_KERNEL);
-	if (!buffer) {
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return -1;
-	}
-
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 16)
-	rdlen = kernel_read(fp, buffer, size, &fp->f_pos);
-#else
-	rdlen = kernel_read(fp, fp->f_pos, buffer, size);
-#endif
-
-	if (size != rdlen) {
-		AICWFDBG(LOGERROR, "%s: %s file rdlen invalid %d\n", __func__,
-			 name, (int)rdlen);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		kfree(buffer);
-		buffer = NULL;
-		return -1;
-	}
-	if (rdlen > 0) {
-		fp->f_pos += rdlen;
-	}
-
-#if 0
-    /*start to transform the data format*/
-    src = (u32 *)buffer;
-    dst = (u32 *)kzalloc(size, GFP_KERNEL);
-
-    if (!dst) {
-        *fw_buf = NULL;
-        __putname(path);
-        filp_close(fp, NULL);
-        fp = NULL;
-        kfree(buffer);
-        buffer = NULL;
-        return -1;
-    }
-
-    for (i = 0; i < (size/4); i++) {
-        dst[i] = src[i];
-    }
-#endif
-
-	__putname(path);
-	filp_close(fp, NULL);
-	fp = NULL;
-	//kfree(buffer);
-	//buffer = NULL;
-	*fw_buf = (u32 *)buffer;
-
-	MD5Init(&md5);
-	MD5Update(&md5, (unsigned char *)buffer, size);
-	MD5Final(&md5, decrypt);
-
-	AICWFDBG(LOGINFO, MD5PINRT, MD5(decrypt));
-
-	return size;
-#endif
 }
 
 /* buffer is allocated by kzalloc */
@@ -804,11 +703,7 @@ int rwnx_request_firmware_common(struct rwnx_hw *rwnx_hw, u32 **buffer,
 
 static void rwnx_restore_firmware(u32 **fw_buf)
 {
-#ifdef CONFIG_USE_FW_REQUEST
 	vfree(*fw_buf);
-#else
-	kfree(*fw_buf);
-#endif
 	*fw_buf = NULL;
 }
 
@@ -854,11 +749,7 @@ int rwnx_plat_bin_fw_upload_2(struct rwnx_hw *rwnx_hw, u32 fw_addr,
 	if (rwnx_hw->pcidev->chip_id == PRODUCT_ID_AIC8800D80) {
 		if (rwnx_hw->pcidev->bar_count == 1) {
 			u8 rem;
-#ifdef CONFIG_USE_FW_REQUEST
 			rem = 1; // 1 if <dst> not kmalloc
-#else
-			rem = 0;
-#endif
 
 			if (0 ==
 			    strcmp(filename, FW_PATCH_BASE_NAME_8800D80_U02)) {
@@ -921,11 +812,7 @@ int rwnx_plat_bin_fw_upload_2(struct rwnx_hw *rwnx_hw, u32 fw_addr,
 		}
 	} else {
 		u8 rem;
-#ifdef CONFIG_USE_FW_REQUEST
 		rem = 1; // 1 if <dst> not kmalloc
-#else
-		rem = 0;
-#endif
 
 		if (size > 1024) {
 			for (i = 0; i < (size - 1024); i += 1024) {
@@ -2063,21 +1950,31 @@ void rwnx_plat_userconfig_parsing(struct rwnx_hw *rwnx_hw, char *buffer,
 static int aic_load_firmware(u32 **fw_buf, char *fw_path, const char *name,
 			     struct device *device)
 {
-#ifdef CONFIG_USE_FW_REQUEST
 	const struct firmware *fw = NULL;
-	u32 *dst = NULL;
-	void *buffer = NULL;
-	MD5_CTX md5;
+	int ret = 0, size = 0, len = 0; // i = 0;
 	unsigned char decrypt[16];
-	int size = 0;
-	int ret = 0;
+	void *buffer = NULL;
+	char *path = NULL;
+	u32 *dst = NULL;
+	MD5_CTX md5;
 
 	AICWFDBG(LOGINFO, "%s: request firmware = %s \n", __func__, name);
 
-	ret = request_firmware(&fw, name, NULL);
+	/* get the firmware path */
+	path = __getname();
+	if (!path) {
+		*fw_buf = NULL;
+		return -1;
+	}
+
+	len = sprintf(path, "%s/%s", fw_path, name);
+
+	AICWFDBG(LOGINFO, "%s :firmware path = %s  \n", __func__, path);
+
+	ret = request_firmware(&fw, path, NULL);
 
 	if (ret < 0) {
-		AICWFDBG(LOGERROR, "Load %s fail\n", name);
+		AICWFDBG(LOGERROR, "Load %s fail\n", path);
 		release_firmware(fw);
 		return -1;
 	}
@@ -2105,115 +2002,6 @@ static int aic_load_firmware(u32 **fw_buf, char *fw_path, const char *name,
 	release_firmware(fw);
 
 	return size;
-#else
-	void *buffer = NULL;
-	char *path = NULL;
-	struct file *fp = NULL;
-	int size = 0, len = 0; //, i=0;
-	ssize_t rdlen = 0;
-	//u32 *src=NULL, *dst = NULL;
-
-	/* get the firmware path */
-	path = __getname();
-	if (!path) {
-		*fw_buf = NULL;
-		return -1;
-	}
-
-	len = sprintf(path, "%s/%s", fw_path, name);
-
-	AICWFDBG(LOGINFO, "%s :firmware path = %s  \n", __func__, path);
-
-	/* open the firmware file */
-	fp = filp_open(path, O_RDONLY, 0);
-	if (IS_ERR(fp) || (!fp)) {
-		printk("%s: %s file failed to open\n", __func__, name);
-		if (IS_ERR(fp)) {
-			printk("is_Err\n");
-		}
-		if ((!fp)) {
-			printk("null\n");
-		}
-		*fw_buf = NULL;
-		__putname(path);
-		fp = NULL;
-		return -1;
-	}
-
-	size = i_size_read(file_inode(fp));
-	if (size <= 0) {
-		printk("%s: %s file size invalid %d\n", __func__, name, size);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return -1;
-	}
-
-	/* start to read from firmware file */
-	buffer = vmalloc(size);
-	memset(buffer, 0, size);
-	if (!buffer) {
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		return -1;
-	}
-
-#if LINUX_VERSION_CODE > KERNEL_VERSION(4, 13, 16)
-	rdlen = kernel_read(fp, buffer, size, &fp->f_pos);
-#else
-	rdlen = kernel_read(fp, fp->f_pos, buffer, size);
-#endif
-
-	if (size != rdlen) {
-		printk("%s: %s file rdlen invalid %d %d\n", __func__, name,
-		       (int)rdlen, size);
-		*fw_buf = NULL;
-		__putname(path);
-		filp_close(fp, NULL);
-		fp = NULL;
-		vfree(buffer);
-		buffer = NULL;
-		return -1;
-	}
-	if (rdlen > 0) {
-		fp->f_pos += rdlen;
-		//printk("f_pos=%d\n", (int)fp->f_pos);
-	}
-
-#if 0
-   /*start to transform the data format*/
-    src = (u32*)buffer;
-    //printk("malloc dst\n");
-    dst = (u32*)vmalloc(size);
-    memset(dst, 0, size);
-
-    if(!dst){
-            *fw_buf=NULL;
-            __putname(path);
-            filp_close(fp,NULL);
-            fp=NULL;
-            vfree(buffer);
-            buffer=NULL;
-            return -1;
-    }
-
-    for(i=0;i<(size/4);i++){
-            dst[i] = src[i];
-    }
-#endif
-
-	__putname(path);
-	filp_close(fp, NULL);
-	fp = NULL;
-	//vfree(buffer);
-	//buffer=NULL;
-	*fw_buf = (u32 *)buffer;
-
-	return size;
-#endif
 }
 
 #define FW_USERCONFIG_NAME "aic_userconfig.txt"

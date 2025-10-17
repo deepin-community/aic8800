@@ -9,7 +9,6 @@ obj-$(CONFIG_AIC_WLAN_SUPPORT) += aic8800_bsp/
 MAKEFLAGS +=-j$(shell nproc)
 
 ########## config option ##########
-export CONFIG_USE_FW_REQUEST = n
 export CONFIG_PREALLOC_RX_SKB = y
 export CONFIG_PREALLOC_TXQ = y
 export CONFIG_OOB = n

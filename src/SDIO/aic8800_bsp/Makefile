@@ -1,9 +1,5 @@
 CONFIG_SDIO_SUPPORT := y
 CONFIG_SDIO_PWRCTRL := y
-#CONFIG_AIC_FW_PATH = "/vendor/etc/firmware"
-CONFIG_AIC_FW_PATH = "/lib/firmware/aic8800D80"
-export CONFIG_AIC_FW_PATH
-ccflags-y += -DCONFIG_AIC_FW_PATH=\"$(CONFIG_AIC_FW_PATH)\"
 
 MODULE_NAME := aic8800_bsp
 ifeq ($(CONFIG_SDIO_SUPPORT), y)
@@ -17,8 +13,6 @@ CONFIG_M2D_OTA_LZMA_SUPPORT = n
 CONFIG_LINK_DET_5G = y
 CONFIG_MCU_MESSAGE = n
 CONFIG_FIRMWARE_ARRAY = n
-# Need to set fw path in BOARD_KERNEL_CMDLINE
-CONFIG_USE_FW_REQUEST ?= n
 CONFIG_FDRV_NO_REG_SDIO = n
 CONFIG_VRF_DCDC_MODE = y
 CONFIG_OOB ?= n
@@ -46,7 +40,6 @@ ccflags-$(CONFIG_M2D_OTA_LZMA_SUPPORT) += -DCONFIG_M2D_OTA_LZMA_SUPPORT
 ccflags-$(CONFIG_LINK_DET_5G) += -DCONFIG_LINK_DET_5G
 ccflags-$(CONFIG_MCU_MESSAGE) += -DCONFIG_MCU_MESSAGE
 ccflags-$(CONFIG_FIRMWARE_ARRAY) += -DCONFIG_FIRMWARE_ARRAY
-ccflags-$(CONFIG_USE_FW_REQUEST) += -DCONFIG_USE_FW_REQUEST
 ccflags-$(CONFIG_FDRV_NO_REG_SDIO) += -DCONFIG_FDRV_NO_REG_SDIO
 ccflags-$(CONFIG_VRF_DCDC_MODE) += -DCONFIG_VRF_DCDC_MODE
 ccflags-$(CONFIG_OOB) += -DCONFIG_OOB
@@ -81,7 +74,7 @@ endif
 
 ########## Platform support list ##########
 KDIR  ?= /lib/modules/$(shell uname -r)/build
-PWD   ?= $(shell pwd)
+PWD   = $(shell pwd)
 KVER ?= $(shell uname -r)
 MODDESTDIR ?= /lib/modules/$(KVER)/kernel/drivers/net/wireless/
 ARCH ?= x86_64
