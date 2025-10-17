@@ -2551,11 +2551,7 @@ static int aicwf_usb_chipmatch(struct aic_usb_dev *usb_dev, u16_l vid,
 		if (usb_dev->udev->speed <= USB_SPEED_HIGH) {
 			aicwf_usb_rx_aggr = true;
 		} else {
-#ifdef CONFIG_PLATFORM_HI
-			aicwf_usb_rx_aggr = true;
-#else
 			aicwf_usb_rx_aggr = false;
-#endif
 		}
 		AICWFDBG(LOGINFO, "%s USE AIC8800D81X2\r\n", __func__);
 		return 0;
@@ -2565,11 +2561,7 @@ static int aicwf_usb_chipmatch(struct aic_usb_dev *usb_dev, u16_l vid,
 		if (usb_dev->udev->speed <= USB_SPEED_HIGH) {
 			aicwf_usb_rx_aggr = true;
 		} else {
-#ifdef CONFIG_PLATFORM_HI
-			aicwf_usb_rx_aggr = true;
-#else
 			aicwf_usb_rx_aggr = false;
-#endif
 		}
 		AICWFDBG(LOGINFO, "%s USE AIC8800D89X2\r\n", __func__);
 		return 0;

@@ -63,11 +63,7 @@ u32 patch_tbl_d80[][2] = {
 #else
 	{ 0x00b4, 0xf3010000 },
 #endif
-#ifdef CONFIG_PLATFORM_HI
-	{ 0x0170, 0x00010001 }, //rx aggr counter
-#else
 	{ 0x0170, 0x0001000A }, //rx aggr counter
-#endif
 
 #if CFG_USER_EXT_FLAGS_EN
 	{ 0x0188, 0x00000000

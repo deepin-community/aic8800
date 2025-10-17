@@ -53,17 +53,10 @@ typedef struct {
 #define CFG_USER_APM_PRBRSP_OFFLOAD_DISABLE 0
 
 u32 patch_tbl_d80x2[][2] = {
-#ifdef CONFIG_PLATFORM_HI
-	{ 0x021c, 0x04000000 }, //hs amsdu
-	{ 0x0220, 0x04000000 }, //ss amsdu
-	{ 0x0224, 0x08000a01 }, //hs aggr
-	{ 0x0228, 0x08000a01 }, //ss aggr
-#else
 	{ 0x021c, 0x04000000 }, //hs amsdu
 	{ 0x0220, 0x04010101 }, //ss amsdu
 	{ 0x0224, 0x50000a01 }, //hs aggr
 	{ 0x0228, 0x50000a00 }, //ss aggr
-#endif
 
 #if 0
 #ifdef USE_5G
@@ -71,11 +64,7 @@ u32 patch_tbl_d80x2[][2] = {
 #else
     {0x00b4, 0xf3010000},
 #endif
-#ifdef CONFIG_PLATFORM_HI
-    {0x0170, 0x00000001},//rx aggr counter
-#else
     {0x0170, 0x0000000A},//rx aggr counter
-#endif
 #endif
 
 	{ 0x01f0, 0x00000001

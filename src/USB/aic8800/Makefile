@@ -11,15 +11,7 @@ export CONFIG_PREALLOC_TXQ = y
 ###################################
 
 ########## platform support list ##########
-export CONFIG_PLATFORM_HI = n
 export CONFIG_PLATFORM_UBUNTU = y
-
-ifeq ($(CONFIG_PLATFORM_HI), y)
-ccflags-y += -DANDROID_PLATFORM
-ARCH = arm
-CROSS_COMPILE = /home/yaya/D/Workspace/CyberQuantum/JinHaoYue/amls905x3/SDK/20191101-0tt-asop/android9.0/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/bin/arm-linux-androidkernel-
-KDIR = /home/yaya/D/Workspace/CyberQuantum/JinHaoYue/amls905x3/SDK/20191101-0tt-asop/android9.0/out/target/product/u202/obj/KERNEL_OBJ/
-endif
 
 ifeq ($(CONFIG_PLATFORM_UBUNTU), y)
 KDIR  = /lib/modules/$(shell uname -r)/build
