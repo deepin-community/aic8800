@@ -33,12 +33,6 @@
 #ifdef CONFIG_INGENIC_T20
 #include "mach/jzmmc.h"
 #endif /* CONFIG_INGENIC_T20 */
-#ifdef CONFIG_PLATFORM_ROCKCHIP
-#include <linux/rfkill-wlan.h>
-#endif
-#ifdef CONFIG_PLATFORM_ROCKCHIP2
-#include <linux/rfkill-wlan.h>
-#endif
 
 #include "aic_bsp_export.h"
 extern uint8_t scanning;
@@ -494,15 +488,6 @@ static struct wake_lock irq_wakelock;
 #endif //ANDROID_PLATFORM
 #endif
 
-#ifdef CONFIG_PLATFORM_ALLWINNER
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-extern int sunxi_wlan_get_oob_irq(int *, int *);
-#else
-extern int sunxi_wlan_get_oob_irq(void);
-extern int sunxi_wlan_get_oob_irq_flags(void);
-#endif
-#endif // CONFIG_PLATFORM_ALLWINNER
-
 #if 0
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 static struct wakeup_source *ws;
@@ -615,37 +600,6 @@ static int rwnx_register_hostwake_irq(struct device *dev)
 		flag_edge = IRQF_TRIGGER_RISING | IRQF_NO_SUSPEND;
 	else
 		flag_edge = IRQF_TRIGGER_FALLING | IRQF_NO_SUSPEND;
-
-#ifdef CONFIG_PLATFORM_ALLWINNER
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-	hostwake_irq_num = sunxi_wlan_get_oob_irq(&irq_flags, &wakeup_enable);
-#else
-	hostwake_irq_num = sunxi_wlan_get_oob_irq();
-	irq_flags = sunxi_wlan_get_oob_irq_flags();
-	wakeup_enable = 1;
-#endif
-#endif //CONFIG_PLATFORM_ALLWINNER
-
-//For Rockchip
-#ifdef CONFIG_PLATFORM_ROCKCHIP
-	hostwake_irq_num = rockchip_wifi_get_oob_irq();
-	printk("%s hostwake_irq_num:%d \r\n", __func__, hostwake_irq_num);
-	irq_flags = (IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL |
-		     IORESOURCE_IRQ_SHAREABLE) &
-		    IRQF_TRIGGER_MASK;
-	printk("%s irq_flags:%d \r\n", __func__, irq_flags);
-	wakeup_enable = 1;
-#endif //CONFIG_PLATFORM_ROCKCHIP
-	//For Rockchip
-#ifdef CONFIG_PLATFORM_ROCKCHIP2
-	hostwake_irq_num = rockchip_wifi_get_oob_irq();
-	printk("%s hostwake_irq_num:%d \r\n", __func__, hostwake_irq_num);
-	irq_flags = (IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL |
-		     IORESOURCE_IRQ_SHAREABLE) &
-		    IRQF_TRIGGER_MASK;
-	printk("%s irq_flags:%d \r\n", __func__, irq_flags);
-	wakeup_enable = 1;
-#endif //CONFIG_PLATFORM_ROCKCHIP
 
 	if (wakeup_enable) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
@@ -963,42 +917,6 @@ void aicwf_sdio_remove_(struct sdio_func *func)
 	aicwf_sdio_remove(func);
 }
 
-#if defined(CONFIG_PLATFORM_ROCKCHIP) || defined(CONFIG_PLATFORM_ROCKCHIP2)
-#ifdef CONFIG_SHUTDOWN_CALLBACK
-int rwnx_close_(struct net_device *dev);
-
-void aicwf_sdio_shutdown(struct device *dev)
-{
-	struct rwnx_vif *rwnx_vif, *tmp;
-	struct aicwf_bus *bus_if = dev_get_drvdata(dev);
-	struct aic_sdio_dev *sdiodev = bus_if->bus_priv.sdio;
-
-	AICWFDBG(LOGINFO, "%s Enter", __func__);
-	list_for_each_entry_safe(rwnx_vif, tmp, &sdiodev->rwnx_hw->vifs, list) {
-		if (rwnx_vif->ndev &&
-		    test_bit(RWNX_DEV_STARTED, &rwnx_vif->drv_flags)) {
-			AICWFDBG(LOGINFO, "%s rwnx_close by shutdown",
-				 __func__);
-			rwnx_close_(rwnx_vif->ndev);
-
-		} else {
-			if (!rwnx_vif->ndev) {
-				AICWFDBG(LOGERROR,
-					 "%s rwnx_vif->ndev is NULL \r\n",
-					 __func__);
-			}
-			if (!test_bit(RWNX_DEV_STARTED, &rwnx_vif->drv_flags)) {
-				AICWFDBG(LOGERROR,
-					 "%s rwnx_vif->drv_flags close\r\n",
-					 __func__);
-			}
-		}
-	}
-	AICWFDBG(LOGINFO, "%s Exit", __func__);
-}
-#endif
-#endif
-
 #if defined(CONFIG_AUTO_POWERSAVE)
 static int aicwf_wakeup_lock_status(struct rwnx_hw *rwnx_hw)
 {
@@ -1085,21 +1003,6 @@ static int aicwf_sdio_suspend(struct device *dev)
 #ifdef CONFIG_GPIO_WAKEUP
 //	rwnx_enable_hostwake_irq();
 #endif
-
-#if defined(CONFIG_PLATFORM_ROCKCHIP) || defined(CONFIG_PLATFORM_ROCKCHIP2)
-	if (sdiodev->chipid == PRODUCT_ID_AIC8801) {
-		sdio_dbg("%s SDIOWIFI_INTR_CONFIG_REG Disable\n", __func__);
-		sdio_claim_host(sdiodev->func);
-		//disable sdio interrupt
-		ret = aicwf_sdio_writeb(sdiodev, SDIOWIFI_INTR_CONFIG_REG, 0x0);
-		if (ret < 0) {
-			sdio_err("reg:%d write failed!\n",
-				 SDIOWIFI_INTR_CONFIG_REG);
-		}
-		sdio_release_irq(sdiodev->func);
-		sdio_release_host(sdiodev->func);
-	}
-#endif
 	atomic_set(&sdiodev->is_bus_suspend, 1);
 	//    smp_mb();
 
@@ -1132,8 +1035,7 @@ static int aicwf_sdio_resume(struct device *dev)
 	struct aicwf_bus *bus_if = dev_get_drvdata(dev);
 	struct aic_sdio_dev *sdiodev = bus_if->bus_priv.sdio;
 	struct rwnx_vif *rwnx_vif, *tmp;
-#if defined(CONFIG_PLATFORM_ROCKCHIP) || defined(CONFIG_PLATFORM_ROCKCHIP2) || \
-	defined(CONFIG_AUTO_POWERSAVE)
+#if defined(CONFIG_AUTO_POWERSAVE)
 	int ret;
 #endif
 
@@ -1170,21 +1072,6 @@ static int aicwf_sdio_resume(struct device *dev)
 #endif
 
 	//	aicwf_sdio_hal_irqhandler(sdiodev->func);
-
-#if defined(CONFIG_PLATFORM_ROCKCHIP) || defined(CONFIG_PLATFORM_ROCKCHIP2)
-	if (sdiodev->chipid == PRODUCT_ID_AIC8801) {
-		sdio_dbg("%s SDIOWIFI_INTR_CONFIG_REG Enable\n", __func__);
-		sdio_claim_host(sdiodev->func);
-		sdio_claim_irq(sdiodev->func, aicwf_sdio_hal_irqhandler);
-
-		//enable sdio interrupt
-		ret = aicwf_sdio_writeb(sdiodev, SDIOWIFI_INTR_CONFIG_REG,
-					0x07);
-		if (ret != 0)
-			sdio_err("intr register failed:%d\n", ret);
-		sdio_release_host(sdiodev->func);
-	}
-#endif
 	atomic_set(&sdiodev->is_bus_suspend, 0);
 	//    smp_mb();
 #ifdef CONFIG_WIFI_SUSPEND_FOR_LINUX
@@ -1217,11 +1104,6 @@ static struct sdio_driver aicwf_sdio_driver = {
 	.id_table = aicwf_sdmmc_ids,
 	.drv = {
 		.pm = &aicwf_sdio_pm_ops,
-#if defined(CONFIG_PLATFORM_ROCKCHIP) || defined(CONFIG_PLATFORM_ROCKCHIP2)
-#ifdef CONFIG_SHUTDOWN_CALLBACK
-		.shutdown = aicwf_sdio_shutdown,
-#endif
-#endif
 	},
 };
 #endif
@@ -1244,37 +1126,6 @@ void aicwf_sdio_remove_(struct sdio_func *func);
 
 void aicwf_sdio_register(void)
 {
-#if 0
-#ifdef CONFIG_PLATFORM_NANOPI
-	extern_wifi_set_enable(0);
-	mdelay(200);
-	extern_wifi_set_enable(1);
-	mdelay(200);
-	sdio_reinit();
-#endif /*CONFIG_PLATFORM_NANOPI*/
-
-#ifdef CONFIG_PLATFORM_ROCKCHIP
-	rockchip_wifi_power(0);
-	mdelay(200);
-	rockchip_wifi_power(1);
-	mdelay(200);
-	rockchip_wifi_set_carddetect(1);
-#endif /*CONFIG_PLATFORM_ROCKCHIP*/
-
-#ifdef CONFIG_INGENIC_T20
-	jzmmc_manual_detect(1, 1);
-#endif /* CONFIG_INGENIC_T20 */
-
-#ifdef CONFIG_NANOPI_M4
-	if (aic_host_drv->card == NULL) {
-		__mmc_claim_host(aic_host_drv, NULL);
-		printk("aic: >>>mmc_rescan_try_freq\n");
-		mmc_rescan_try_freq(aic_host_drv, aic_max_freqs);
-		mmc_release_host(aic_host_drv);
-	}
-#endif
-#endif
-
 #ifndef CONFIG_FDRV_NO_REG_SDIO
 	if (sdio_register_driver(&aicwf_sdio_driver)) {
 	} else {
@@ -1313,21 +1164,6 @@ void aicwf_sdio_exit(void)
 	sdio_unregister_driver(&aicwf_sdio_driver);
 #else
 	aicwf_sdio_remove_(get_sdio_func());
-#endif
-
-#if 0
-#ifdef CONFIG_PLATFORM_AMLOGIC
-	extern_wifi_set_enable(0);
-#endif /*CONFIG_PLATFORM_AMLOGIC*/
-#endif
-
-#if 0
-#ifdef CONFIG_PLATFORM_ROCKCHIP
-	rockchip_wifi_set_carddetect(0);
-	mdelay(200);
-	rockchip_wifi_power(0);
-	mdelay(200);
-#endif /*CONFIG_PLATFORM_ROCKCHIP*/
 #endif
 
 	if (g_rwnx_plat) {
@@ -3009,10 +2845,6 @@ void aicwf_sdio_hal_irqhandler(struct sdio_func *func)
 				sdio_info("byte mode len=%d\r\n", byte_len);
 				pkt = aicwf_sdio_readframes(sdiodev);
 			}
-		} else {
-#ifndef CONFIG_PLATFORM_ALLWINNER
-//	sdio_err("Interrupt but no data\n");
-#endif
 		}
 
 		if (pkt)
@@ -3090,10 +2922,6 @@ void aicwf_sdio_hal_irqhandler(struct sdio_func *func)
 					pkt = aicwf_sdio_readframes(sdiodev);
 				}
 			}
-		} else {
-#ifndef CONFIG_PLATFORM_ALLWINNER
-			//sdio_err("Interrupt but no data\n");
-#endif
 		}
 
 		if (pkt)

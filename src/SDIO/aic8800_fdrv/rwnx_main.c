@@ -1355,15 +1355,6 @@ static int rwnx_close(struct net_device *dev)
 	return 0;
 }
 
-#if defined(CONFIG_PLATFORM_ROCKCHIP) || defined(CONFIG_PLATFORM_ROCKCHIP2)
-#ifdef CONFIG_SHUTDOWN_CALLBACK
-int rwnx_close_(struct net_device *dev)
-{
-	return rwnx_close(dev);
-}
-#endif
-#endif
-
 #define IOCTL_HOSTAPD (SIOCIWFIRSTPRIV + 28)
 #define IOCTL_WPAS (SIOCIWFIRSTPRIV + 30)
 
@@ -5672,49 +5663,10 @@ int rwnx_ic_rf_init(struct rwnx_hw *rwnx_hw)
 	return 0;
 }
 
-#ifdef CONFIG_PLATFORM_ALLWINNER
-#ifdef CONFIG_USE_CUSTOMER_MAC
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-extern int get_custom_mac_address(int fmt, char *name, char *addr);
-#else
-extern int get_wifi_custom_mac_address(char *addr_str);
-#endif
-#endif //CONFIG_USE_CUSTOMER_MAC
-#endif //CONFIG_PLATFORM_ALLWINNER
-
-#ifdef CONFIG_PLATFORM_ROCKCHIP
-#include <linux/rfkill-wlan.h>
-#endif
-#ifdef CONFIG_PLATFORM_ROCKCHIP2
-#include <linux/rfkill-wlan.h>
-#endif
-
 #ifdef CONFIG_USE_CUSTOMER_MAC
 int rwnx_get_custom_mac_addr(u8_l *mac_addr_efuse)
 {
 	int ret = 0;
-
-#ifdef CONFIG_PLATFORM_ALLWINNER
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-	ret = get_custom_mac_address(1, "wifi", mac_addr_efuse);
-#else
-	ret = get_wifi_custom_mac_address(addr_str);
-	if (ret >= 0) {
-		sscanf(addr_str, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",
-		       &mac_addr_efuse[0], &mac_addr_efuse[1],
-		       &mac_addr_efuse[2], &mac_addr_efuse[3],
-		       &mac_addr_efuse[4], &mac_addr_efuse[5]);
-	}
-#endif
-
-#endif //CONFIG_PLATFORM_ALLWINNER
-
-#ifdef CONFIG_PLATFORM_ROCKCHIP
-	ret = rockchip_wifi_mac_addr(mac_addr_efuse);
-#endif //CONFIG_PLATFORM_ROCKCHIP
-#ifdef CONFIG_PLATFORM_ROCKCHIP2
-	ret = rockchip_wifi_mac_addr(mac_addr_efuse);
-#endif //CONFIG_PLATFORM_ROCKCHIP
 
 	if (ret == 0) {
 		AICWFDBG(LOGINFO, "%s %02x:%02x:%02x:%02x:%02x:%02x", __func__,
@@ -6315,14 +6267,12 @@ static int __init rwnx_mod_init(void)
 	rwnx_print_version();
 	rwnx_init_cmd_array();
 
-	//#ifndef CONFIG_PLATFORM_ROCKCHIP
 	if (aicbsp_set_subsys(AIC_WIFI, AIC_PWR_ON) < 0) {
 		AICWFDBG(LOGERROR, "%s, set power on fail!\n", __func__);
 		if (!aicbsp_get_load_fw_in_fdrv()) {
 			return -ENODEV;
 		}
 	}
-	//#endif
 
 	init_completion(&hostif_register_done);
 	aicsmac_driver_register();
@@ -6367,9 +6317,7 @@ static void __exit rwnx_mod_exit(void)
 #ifdef AICWF_USB_SUPPORT
 	aicwf_usb_exit();
 #endif
-	//#ifndef CONFIG_PLATFORM_ROCKCHIP
 	aicbsp_set_subsys(AIC_WIFI, AIC_PWR_OFF);
-	//#endif
 	rwnx_free_cmd_array();
 }
 

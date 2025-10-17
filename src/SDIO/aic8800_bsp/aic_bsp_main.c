@@ -398,9 +398,6 @@ static int __init aicbsp_init(void)
 	}
 
 	mutex_init(&aicbsp_power_lock);
-#if defined CONFIG_PLATFORM_ROCKCHIP || defined CONFIG_PLATFORM_ROCKCHIP2
-	aicbsp_set_subsys(AIC_BLUETOOTH, AIC_PWR_ON);
-#endif
 	return 0;
 }
 
@@ -409,11 +406,6 @@ extern struct aic_sdio_dev *aicbsp_sdiodev;
 
 static void __exit aicbsp_exit(void)
 {
-#if defined CONFIG_PLATFORM_ROCKCHIP || defined CONFIG_PLATFORM_ROCKCHIP2
-	if (aicbsp_sdiodev) {
-		aicbsp_sdio_exit();
-	}
-#endif
 	sysfs_remove_group(&(aicbsp_pdev->dev.kobj), &aicbsp_attribute_group);
 	platform_device_del(aicbsp_pdev);
 	platform_driver_unregister(&aicbsp_driver);

@@ -18,9 +18,6 @@
 #include "rwnx_msg_tx.h"
 
 #ifdef CONFIG_GPIO_WAKEUP
-#ifdef CONFIG_PLATFORM_ROCKCHIP
-#include <linux/rfkill-wlan.h>
-#endif
 static int wakeup_enable;
 static u32 hostwake_irq_num;
 atomic_t irq_count;
@@ -2504,30 +2501,6 @@ static int rwnx_register_hostwake_irq(struct device *dev)
 	uint irq_flags = 0;
 
 	spin_lock_init(&irq_lock);
-
-//Setting hostwake gpio for platform
-//For Rockchip
-#ifdef CONFIG_PLATFORM_ROCKCHIP
-	hostwake_irq_num = rockchip_wifi_get_oob_irq();
-	printk("%s hostwake_irq_num:%d \r\n", __func__, hostwake_irq_num);
-	irq_flags = (IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL |
-		     IORESOURCE_IRQ_SHAREABLE) &
-		    IRQF_TRIGGER_MASK;
-	printk("%s irq_flags:%d \r\n", __func__, irq_flags);
-	wakeup_enable = 1;
-#endif //CONFIG_PLATFORM_ROCKCHIP
-
-//For Allwinner
-#ifdef CONFIG_PLATFORM_ALLWINNER
-	int irq_flags;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)
-	hostwake_irq_num = sunxi_wlan_get_oob_irq(&irq_flags, &wakeup_enable);
-#else
-	hostwake_irq_num = sunxi_wlan_get_oob_irq();
-	irq_flags = sunxi_wlan_get_oob_irq_flags();
-	wakeup_enable = 1;
-#endif
-#endif //CONFIG_PLATFORM_ALLWINNER
 
 	ret = request_irq(hostwake_irq_num, rwnx_irq_handler,
 			  IRQF_TRIGGER_RISING | IRQF_NO_SUSPEND,

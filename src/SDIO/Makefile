@@ -18,35 +18,8 @@ export CONFIG_RESV_MEM_SUPPORT = y
 ###################################
 
 ########## Platform support list ##########
-export CONFIG_PLATFORM_ROCKCHIP = n
-export CONFIG_PLATFORM_ROCKCHIP2 = n
-export CONFIG_PLATFORM_ALLWINNER = n
 export CONFIG_PLATFORM_AMLOGIC = n
 export CONFIG_PLATFORM_UBUNTU = y
-
-ifeq ($(CONFIG_PLATFORM_ROCKCHIP), y)
-ARCH = arm64
-KDIR = /home/yaya/E/Rockchip/3566/firefly/Android11.0/Firefly-RK356X_Android11.0_git_20210824/RK356X_Android11.0/kernel
-CROSS_COMPILE = /home/yaya/E/Rockchip/3566/firefly/Android11.0/Firefly-RK356X_Android11.0_git_20210824/RK356X_Android11.0/prebuilts/gcc/linux-x86/aarch64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-ccflags-y += -DANDROID_PLATFORM
-ccflags-y += -DCONFIG_PLATFORM_ROCKCHIP
-endif
-
-ifeq ($(CONFIG_PLATFORM_ROCKCHIP2), y)
-KDIR := /home/yaya/E/Rockchip/3126/Android6/kernel
-ARCH ?= arm
-CROSS_COMPILE ?= /home/yaya/E/Rockchip/3288/Android5/rk3288_JHY/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin/arm-eabi-
-ccflags-y += -DANDROID_PLATFORM
-ccflags-y += -DCONFIG_PLATFORM_ROCKCHIP2
-endif
-
-ifeq ($(CONFIG_PLATFORM_ALLWINNER), y)
-KDIR  = /home/yaya/E/Allwinner/A133/Android10/linux-4.9
-ARCH = arm64
-CROSS_COMPILE = /home/yaya/E/Allwinner/r818/Android10/lichee/out/gcc-linaro-5.3.1-2016.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-export CONFIG_SUPPORT_LPM = y
-ccflags-y += -DANDROID_PLATFORM
-endif
 
 ifeq ($(CONFIG_PLATFORM_AMLOGIC), y)
 ARCH = arm

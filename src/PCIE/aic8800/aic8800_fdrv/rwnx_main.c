@@ -6166,16 +6166,6 @@ static int __init rwnx_mod_init(void)
 	rwnx_print_version();
 	rwnx_init_cmd_array();
 
-#if 0
-//#ifndef CONFIG_PLATFORM_ROCKCHIP
-	if (aicbsp_set_subsys(AIC_WIFI, AIC_PWR_ON) < 0) {
-		AICWFDBG(LOGERROR, "%s, set power on fail!\n", __func__);
-		if(!aicbsp_get_load_fw_in_fdrv()){
-			return -ENODEV;
-		}
-	}
-//#endif
-#endif
 	init_completion(&hostif_register_done);
 	aicsmac_driver_register();
 
@@ -6217,9 +6207,6 @@ static void __exit rwnx_mod_exit(void)
 #ifdef AICWF_USB_SUPPORT
 	aicwf_usb_exit();
 #endif
-	//#ifndef CONFIG_PLATFORM_ROCKCHIP
-	//aicbsp_set_subsys(AIC_WIFI, AIC_PWR_OFF);
-	//#endif
 	rwnx_free_cmd_array();
 }
 

@@ -217,7 +217,6 @@ ccflags-$(CONFIG_RWNX_TL4) += -DCONFIG_RWNX_TL4
 ccflags-$(CONFIG_RWNX_OLD_IPC) += -DCONFIG_RWNX_OLD_IPC
 ccflags-$(CONFIG_PLATFORM_NANOPI_M4) += -DCONFIG_NANOPI_M4
 ccflags-$(CONFIG_PLATFORM_INGENIC_T20) += -DCONFIG_INGENIC_T20
-ccflags-$(CONFIG_PLATFORM_ALLWINNER) += -DCONFIG_PLATFORM_ALLWINNER
 ccflags-$(CONFIG_START_FROM_BOOTROM) += -DCONFIG_START_FROM_BOOTROM
 ccflags-$(CONFIG_PMIC_SETTING) += -DCONFIG_PMIC_SETTING
 ccflags-$(CONFIG_VRF_DCDC_MODE) += -DCONFIG_VRF_DCDC_MODE
@@ -308,8 +307,6 @@ ccflags-$(CONFIG_RX_NETIF_RECV_SKB) += -DCONFIG_RX_NETIF_RECV_SKB
 ccflags-$(CONFIG_USB_BT) += -DCONFIG_USB_BT
 
 # Platform support list
-CONFIG_PLATFORM_ROCKCHIP ?= n
-CONFIG_PLATFORM_ALLWINNER ?= n
 CONFIG_PLATFORM_INGENIC_T20 ?= n
 CONFIG_PLATFORM_AMLOGIC ?= n
 CONFIG_PLATFORM_UBUNTU ?= y
@@ -317,42 +314,6 @@ CONFIG_PLATFORM_UBUNTU ?= y
 ccflags-y += -DAIC_TRACE_INCLUDE_PATH=$(src)
 
 MAKEFLAGS +=-j$(shell nproc)
-
-ifeq ($(CONFIG_PLATFORM_ROCKCHIP), y)
-#KDIR ?= /home/yaya/E/Rockchip/3229/Android7/RK3229_ANDROID7.1_v1.01_20170914/rk3229_Android7.1_v1.01_xml0914/kernel
-#ARCH ?= arm
-#CROSS_COMPILE ?= /home/yaya/E/Rockchip/3229/Android7/RK3229_ANDROID7.1_v1.01_20170914/rk3229_Android7.1_v1.01_xml0914/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin/arm-eabi-
-#KDIR  ?= /home/yaya/E/Rockchip/3399/rk3399-android-10/kernel
-#ARCH ?= arm64
-#CROSS_COMPILE ?= /home/yaya/E/Rockchip/3399/rk3399-android-10/prebuilts/gcc/linux-x86/aarch64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-#KDIR  ?= /home/yaya/E/Rockchip/3288/Android10/kernel/kernel/
-#ARCH ?= arm
-#CROSS_COMPILE ?= /home/yaya/E/Rockchip/3288/Android10/tool/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
-#KDIR  ?= /home/yaya/E/Rockchip/3229/Android9/rk3229_android9.0_box/kernel
-#ARCH ?= arm
-#CROSS_COMPILE ?= /home/yaya/E/Rockchip/3229/Android9/rk3229_android9.0_box/prebuilts/gcc/linux-x86/arm/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
-#KDIR ?= /home/yaya/E/Rockchip/3566/Android/kernel
-#ARCH ?= arm64
-#CROSS_COMPILE ?= /home/yaya/E/Rockchip/3566/Android/prebuilts/gcc/linux-x86/aarch64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-#KDIR ?= /home/yaya/E/Rockchip/3328/Android9/SDK/kernel/
-#ARCH ?= arm64
-#CROSS_COMPILE ?= /home/yaya/E/Rockchip/3328/Android9/SDK/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-#KDIR ?= /home/yaya/E/Rockchip/3566/oudu/kernel
-KDIR ?= ~/E/Rockchip/3566/Android11/rk3566_rk3568_android11_oranth/kernel
-#KDIR ?= /home/yaya/E/Rockchip/3566/shengteng/kernel
-ARCH ?= arm64
-CROSS_COMPILE ?= ~/E/Rockchip/3566/Android11/rk3566_rk3568_android11_oranth/prebuilts/gcc/linux-x86/aarch64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-ccflags-$(CONFIG_PLATFORM_ROCKCHIP) += -DCONFIG_PLATFORM_ROCKCHIP
-ccflags-y += -DANDROID_PLATFORM
-endif
-
-ifeq ($(CONFIG_PLATFORM_ALLWINNER), y)
-ccflags-$(CONFIG_PLATFORM_ALLWINNER) += -DCONFIG_PLATFORM_ALLWINNER
-ccflags-y += -DANDROID_PLATFORM
-KDIR  ?= /home/yaya/E/Allwinner/r818/Android10/lichee/kernel/linux-4.9/
-ARCH ?= arm64
-CROSS_COMPILE ?= /home/yaya/E/Allwinner/r818/Android10/android/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
-endif
 
 ifeq ($(CONFIG_PLATFORM_INGENIC_T20), y)
 KDIR ?= /home/yaya/E/T40/kernel

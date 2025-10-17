@@ -234,7 +234,6 @@ ccflags-$(CONFIG_RWNX_TL4) += -DCONFIG_RWNX_TL4
 ccflags-$(CONFIG_RWNX_OLD_IPC) += -DCONFIG_RWNX_OLD_IPC
 ccflags-$(CONFIG_PLATFORM_NANOPI_M4) += -DCONFIG_NANOPI_M4
 ccflags-$(CONFIG_PLATFORM_INGENIC_T20) += -DCONFIG_INGENIC_T20
-ccflags-$(CONFIG_PLATFORM_ALLWINNER) += -DCONFIG_PLATFORM_ALLWINNER
 ccflags-$(CONFIG_START_FROM_BOOTROM) += -DCONFIG_START_FROM_BOOTROM
 ccflags-$(CONFIG_PMIC_SETTING) += -DCONFIG_PMIC_SETTING
 ccflags-$(CONFIG_VRF_DCDC_MODE) += -DCONFIG_VRF_DCDC_MODE
@@ -339,38 +338,9 @@ ccflags-y += -DAIC_TRACE_INCLUDE_PATH=$(src)
 MAKEFLAGS +=-j$(shell nproc)
 
 ########## Platform support list ##########
-CONFIG_PLATFORM_ROCKCHIP ?= n
-CONFIG_PLATFORM_ROCKCHIP2 ?= n
-CONFIG_PLATFORM_ALLWINNER ?= n
 CONFIG_PLATFORM_INGENIC_T20 ?= n
 CONFIG_PLATFORM_AMLOGIC ?= n
 CONFIG_PLATFORM_UBUNTU ?= y
-
-ifeq ($(CONFIG_PLATFORM_ROCKCHIP), y)
-ARCH := arm64
-KDIR ?= /home/yaya/E/Rockchip/3566/firefly/Android11.0/Firefly-RK356X_Android11.0_git_20210824/RK356X_Android11.0/kernel
-CROSS_COMPILE := /home/yaya/E/Rockchip/3566/firefly/Android11.0/Firefly-RK356X_Android11.0_git_20210824/RK356X_Android11.0/prebuilts/gcc/linux-x86/aarch64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-ccflags-$(CONFIG_PLATFORM_ROCKCHIP) += -DCONFIG_PLATFORM_ROCKCHIP
-ccflags-y += -DANDROID_PLATFORM
-endif
-
-ifeq ($(CONFIG_PLATFORM_ROCKCHIP2), y)
-ARCH := arm64
-KDIR ?= /home/yaya/E/Rockchip/3566/firefly/Android11.0/Firefly-RK356X_Android11.0_git_20210824/RK356X_Android11.0/kernel
-CROSS_COMPILE := /home/yaya/E/Rockchip/3566/firefly/Android11.0/Firefly-RK356X_Android11.0_git_20210824/RK356X_Android11.0/prebuilts/gcc/linux-x86/aarch64/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
-
-ccflags-$(CONFIG_PLATFORM_ROCKCHIP2) += -DCONFIG_PLATFORM_ROCKCHIP2
-ccflags-y += -DANDROID_PLATFORM
-endif
-
-
-ifeq ($(CONFIG_PLATFORM_ALLWINNER), y)
-ccflags-$(CONFIG_PLATFORM_ALLWINNER) += -DCONFIG_PLATFORM_ALLWINNER
-ccflags-y += -DANDROID_PLATFORM
-KDIR  ?= /home/yaya/E/Allwinner/r818/Android10/lichee/kernel/linux-4.9/
-ARCH ?= arm64
-CROSS_COMPILE ?= /home/yaya/E/Allwinner/r818/Android10/android/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
-endif
 
 ifeq ($(CONFIG_PLATFORM_INGENIC_T20), y)
 KDIR ?= /home/yaya/E/T40/kernel

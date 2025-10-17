@@ -24,10 +24,6 @@
 #include "mach/jzmmc.h"
 #endif /* CONFIG_INGENIC_T20 */
 
-#ifdef CONFIG_PLATFORM_ALLWINNER
-void platform_wifi_power_off(void);
-#endif
-
 int aicwf_sdio_readb(struct aic_sdio_dev *sdiodev, uint regaddr, u8 *val)
 {
 	int ret;
@@ -190,9 +186,7 @@ static void aicwf_sdio_remove(struct sdio_func *func)
 	kfree(sdiodev);
 	kfree(bus_if);
 	sdio_dbg("%s done\n", __func__);
-#ifdef CONFIG_PLATFORM_ALLWINNER
 	platform_wifi_power_off();
-#endif
 }
 
 static int aicwf_sdio_suspend(struct device *dev)
@@ -272,42 +266,6 @@ extern struct mmc_host *aic_host_drv;
 extern int __mmc_claim_host(struct mmc_host *host, atomic_t *abort);
 extern void mmc_release_host(struct mmc_host *host);
 #endif
-#ifdef CONFIG_PLATFORM_ALLWINNER
-extern void sunxi_mmc_rescan_card(unsigned ids);
-extern void sunxi_wlan_set_power(int on);
-extern int sunxi_wlan_get_bus_index(void);
-
-int platform_wifi_power_on(void)
-{
-	int ret = 0;
-	int wlan_bus_index = sunxi_wlan_get_bus_index();
-	if (wlan_bus_index < 0)
-		return wlan_bus_index;
-
-	sunxi_wlan_set_power(1);
-	mdelay(1000);
-	sunxi_mmc_rescan_card(wlan_bus_index);
-
-	printk("platform_wifi_power_on");
-
-	return ret;
-}
-
-void platform_wifi_power_off(void)
-{
-	int wlan_bus_index = sunxi_wlan_get_bus_index();
-	if (wlan_bus_index < 0) {
-		printk("no wlan_bus_index\n");
-		return;
-	}
-	printk("power_off\n");
-	sunxi_wlan_set_power(0);
-	mdelay(100);
-	//sunxi_mmc_rescan_card(wlan_bus_index);
-
-	printk("platform_wifi_power_off");
-}
-#endif
 void aicwf_sdio_register(void)
 {
 #ifdef CONFIG_PLATFORM_NANOPI
@@ -330,9 +288,7 @@ void aicwf_sdio_register(void)
 		mmc_release_host(aic_host_drv);
 	}
 #endif
-#ifdef CONFIG_PLATFORM_ALLWINNER
 	platform_wifi_power_on();
-#endif
 	if (sdio_register_driver(&aicwf_sdio_driver)) {
 	} else {
 		//may add mmc_rescan here
@@ -1100,9 +1056,7 @@ void aicwf_sdio_hal_irqhandler(struct sdio_func *func)
 			pkt = aicwf_sdio_readframes(sdiodev);
 		}
 	} else {
-#ifndef CONFIG_PLATFORM_ALLWINNER
 		sdio_err("Interrupt but no data\n");
-#endif
 	}
 
 	if (pkt)
