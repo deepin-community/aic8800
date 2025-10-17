@@ -81,20 +81,12 @@ endif
 
 ########## Platform support list ##########
 CONFIG_PLATFORM_INGENIC_T20 ?= n
-CONFIG_PLATFORM_AMLOGIC ?= n
 CONFIG_PLATFORM_UBUNTU ?= y
 
 ifeq ($(CONFIG_PLATFORM_INGENIC_T20), y)
 KDIR ?= /home/yaya/E/T40/kernel
 ARCH ?= mips
 CROSS_COMPILE ?= /home/yaya/E/T40/mips-linux-gnu-ingenic-gcc7.2.0-glibc2.29-fp64/bin/mips-linux-gnu-
-endif
-
-ifeq ($(CONFIG_PLATFORM_AMLOGIC), y)
-ccflags-$(CONFIG_PLATFORM_AMLOGIC) += -DCONFIG_PLATFORM_AMLOGIC
-KDIR  ?= /home/aiden/D1/SDK/Amlogic/905x3_a9/android9.0/out/target/product/u202/obj/KERNEL_OBJ/
-ARCH ?= arm
-CROSS_COMPILE ?= /home/aiden/D1/SDK/Amlogic/905x3_a9/android9.0/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/bin/arm-linux-androideabi-
 endif
 
 ifeq ($(CONFIG_PLATFORM_UBUNTU), y)

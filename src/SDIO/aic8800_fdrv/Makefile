@@ -339,18 +339,12 @@ MAKEFLAGS +=-j$(shell nproc)
 
 ########## Platform support list ##########
 CONFIG_PLATFORM_INGENIC_T20 ?= n
-CONFIG_PLATFORM_AMLOGIC ?= n
 CONFIG_PLATFORM_UBUNTU ?= y
 
 ifeq ($(CONFIG_PLATFORM_INGENIC_T20), y)
 KDIR ?= /home/yaya/E/T40/kernel
 ARCH ?= mips
 CROSS_COMPILE ?= /home/yaya/E/T40/mips-linux-gnu-ingenic-gcc7.2.0-glibc2.29-fp64/bin/mips-linux-gnu-
-endif
-
-ifeq ($(CONFIG_PLATFORM_AMLOGIC), y)
-ccflags-$(CONFIG_PLATFORM_AMLOGIC) += -DCONFIG_PLATFORM_AMLOGIC
-ccflags-y += -DANDROID_PLATFORM
 endif
 
 ifeq ($(CONFIG_PLATFORM_UBUNTU), y)

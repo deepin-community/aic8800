@@ -5,7 +5,6 @@ obj-$(CONFIG_AIC8800_BTLPM_SUPPORT) := aic8800_btlpm.o
 ccflags-y += -I$(srctree)/$(src)/../aic8800_bsp
 
 # Platform support list
-CONFIG_PLATFORM_AMLOGIC ?= n
 CONFIG_PLATFORM_UBUNTU ?= y
 
 
@@ -21,11 +20,6 @@ aic8800_btlpm-$(CONFIG_SUPPORT_LPM) += lpm.o
 ccflags-y += -DAIC_TRACE_INCLUDE_PATH=$(src)
 
 ccflags-$(CONFIG_AUTO_PM) += -DCONFIG_AUTO_PM
-
-ifeq ($(CONFIG_PLATFORM_AMLOGIC), y)
-ccflags-$(CONFIG_PLATFORM_NANOPI) += -DCONFIG_PLATFORM_NANOPI
-ccflags-y += -DANDROID_PLATFORM
-endif
 
 ifeq ($(CONFIG_PLATFORM_UBUNTU), y)
 KDIR  ?= /lib/modules/$(shell uname -r)/build

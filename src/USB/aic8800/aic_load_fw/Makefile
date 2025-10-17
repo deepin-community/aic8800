@@ -16,7 +16,6 @@ CONFIG_PREALLOC_RX_SKB ?= n
 CONFIG_PREALLOC_TXQ ?= y
 
 # Platform support list
-CONFIG_PLATFORM_AMLOGIC ?= n
 CONFIG_PLATFORM_HI ?= n
 CONFIG_PLATFORM_UBUNTU ?= y
 
@@ -54,14 +53,6 @@ $(MODULE_NAME)-y := 	aic_bluetooth_main.o \
 
 $(MODULE_NAME)-$(CONFIG_PREALLOC_RX_SKB)	 += aicwf_rx_prealloc.o
 $(MODULE_NAME)-$(CONFIG_PREALLOC_TXQ)     += aicwf_txq_prealloc.o
-
-ifeq ($(CONFIG_PLATFORM_AMLOGIC), y)
-ccflags-$(CONFIG_PLATFORM_AMLOGIC) += -DCONFIG_PLATFORM_AMLOGIC
-ARCH := arm
-CROSS_COMPILE := /home/yaya/D/Workspace/CyberQuantum/JinHaoYue/amls905x3/SDK/20191101-0tt-asop/android9.0/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9/bin/arm-linux-androidkernel-
-KDIR := /home/yaya/D/Workspace/CyberQuantum/JinHaoYue/amls905x3/SDK/20191101-0tt-asop/android9.0/out/target/product/u202/obj/KERNEL_OBJ/
-
-endif
 
 ifeq ($(CONFIG_PLATFORM_UBUNTU), y)
 ccflags-$(CONFIG_PLATFORM_UBUNTU) += -DCONFIG_PLATFORM_UBUNTU

@@ -21,13 +21,6 @@
 #include <linux/version.h>
 #include <linux/delay.h>
 
-#ifdef CONFIG_PLATFORM_AMLOGIC //for AML
-#include <linux/amlogic/aml_gpio_consumer.h>
-extern void sdio_reinit(void);
-extern void extern_wifi_set_enable(int is_on);
-extern void set_power_control_lock(int lock);
-#endif //for AML
-
 static int aicbsp_platform_power_on(void);
 static void aicbsp_platform_power_off(void);
 
@@ -434,15 +427,6 @@ static int aicbsp_platform_power_on(void)
 	struct semaphore aic_chipup_sem;
 	sdio_dbg("%s\n", __func__);
 
-#ifdef CONFIG_PLATFORM_AMLOGIC
-	extern_wifi_set_enable(0);
-	mdelay(200);
-	extern_wifi_set_enable(1);
-	mdelay(200);
-	sdio_reinit();
-	set_power_control_lock(1);
-#endif
-
 	sema_init(&aic_chipup_sem, 0);
 	ret = aicbsp_reg_sdio_notify(&aic_chipup_sem);
 	if (ret) {
@@ -461,21 +445,12 @@ static int aicbsp_platform_power_on(void)
 
 	aicbsp_unreg_sdio_notify();
 
-#ifdef CONFIG_PLATFORM_AMLOGIC
-	extern_wifi_set_enable(0);
-#endif
-
 	return -1;
 }
 
 static void aicbsp_platform_power_off(void)
 {
-//TODO wifi disable and sdio card detection
-
-#ifdef CONFIG_PLATFORM_AMLOGIC
-	extern_wifi_set_enable(0);
-#endif
-
+	//TODO wifi disable and sdio card detection
 	sdio_dbg("%s\n", __func__);
 }
 
