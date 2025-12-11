@@ -2,7 +2,7 @@
 #include "rwnx_msg_tx.h"
 #include "reg_access.h"
 
-#define FW_USERCONFIG_NAME_8800D80         "aic_userconfig_8800d80.txt"
+#define FW_USERCONFIG_NAME_8800D80         "aic8800_fw/USB/aic8800D80/aic_userconfig_8800d80.txt"
 #define FW_POWERLIMIT_NAME_8800D80         "aic_powerlimit_8800d80.txt"
 
 extern char aic_fw_path[200];
