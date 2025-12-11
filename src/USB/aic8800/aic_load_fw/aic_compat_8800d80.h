@@ -16,19 +16,19 @@
 #define FW_BASE_NAME_8800D80_U02            "fmacfw_8800d80_u02_ipc.bin"
 #define FW_BASE_NAME_8800D80_H_U02          "fmacfw_8800d80_h_u02_ipc.bin"
 #else
-#define FW_BASE_NAME_8800D80_U02            "fmacfw_8800d80_u02.bin"
+#define FW_BASE_NAME_8800D80_U02            "aic8800_fw/USB/aic8800D80/fmacfw_8800d80_u02.bin"
 #define FW_BASE_NAME_8800D80_H_U02          "fmacfw_8800d80_h_u02.bin"
 #endif
 #define FW_RF_BASE_NAME_8800D80_U02         "lmacfw_rf_8800d80_u02.bin"
-#define FW_PATCH_BASE_NAME_8800D80_U02      "fw_patch_8800d80_u02.bin"
-#define FW_PATCH_BASE_NAME_8800D80_U02_EXT  "fw_patch_8800d80_u02_ext"
-#define FW_ADID_BASE_NAME_8800D80_U02       "fw_adid_8800d80_u02.bin"
+#define FW_PATCH_BASE_NAME_8800D80_U02      "aic8800_fw/USB/aic8800D80/fw_patch_8800d80_u02.bin"
+#define FW_PATCH_BASE_NAME_8800D80_U02_EXT  "aic8800_fw/USB/aic8800D80/fw_patch_8800d80_u02_ext"
+#define FW_ADID_BASE_NAME_8800D80_U02       "aic8800_fw/USB/aic8800D80/fw_adid_8800d80_u02.bin"
 #define FW_CALIBMODE_NAME_8800D80_U02       "calibmode_8800d80.bin"
-#define FW_PATCH_TABLE_NAME_8800D80_U02     "fw_patch_table_8800d80_u02.bin"
+#define FW_PATCH_TABLE_NAME_8800D80_U02     "aic8800_fw/USB/aic8800D80/fw_patch_table_8800d80_u02.bin"
 
 #define FLASH_BIN_8800M80                   "host_wb_8800m80.bin"
 
-#define FW_USERCONFIG_NAME_8800D80          "aic_userconfig_8800d80.txt"
+#define FW_USERCONFIG_NAME_8800D80          "aic8800_fw/USB/aic8800D80/aic_userconfig_8800d80.txt"
 
 #define RAM_FMAC_FW_ADDR_8800D80           0x100000
 #define RAM_FMAC_RF_FW_ADDR_8800D80        0x110000
