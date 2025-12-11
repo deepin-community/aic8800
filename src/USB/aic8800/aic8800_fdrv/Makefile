@@ -280,11 +280,6 @@ else
 ccflags-y += -DNX_TXQ_CNT=4
 endif
 
-# For old kernel (<=3.19)
-ifeq ($(shell test $(VERSION) -lt 4 -a "$(CONFIG_VENDOR_RWNX)" = y ; echo $$?),0)
-ccflags-y += -DCONFIG_VENDOR_RWNX_VHT_NO80
-endif
-
 ccflags-$(CONFIG_RX_REORDER) += -DAICWF_RX_REORDER
 ccflags-$(CONFIG_ARP_OFFLOAD) += -DAICWF_ARP_OFFLOAD
 ccflags-$(CONFIG_USE_5G) += -DUSE_5G
@@ -374,7 +369,7 @@ endif
 ifeq ($(CONFIG_PLATFORM_UBUNTU), y)
 KDIR  ?= /lib/modules/$(shell uname -r)/build
 #KDIR ?= ~/D/Workspace/CyberQuantum/Linux/linux-4.15/
-PWD   ?= $(shell pwd)
+PWD   = $(shell pwd)
 KVER ?= $(shell uname -r)
 MODDESTDIR ?= /lib/modules/$(KVER)/kernel/drivers/net/wireless/aic8800
 SUBARCH = $(shell uname -m | sed -e s/i.86/i386/ -e s/armv.l/arm/ -e s/aarch64/arm64/)
