@@ -24,12 +24,13 @@ int rwnx_fw_log_init(struct rwnx_fw_log *fw_log)
 
 	fw_log->buf.data = buf;
 	fw_log->buf.start = fw_log->buf.data;
-	fw_log->buf.size  = 0;
-	fw_log->buf.end   = fw_log->buf.data;
+	fw_log->buf.size = 0;
+	fw_log->buf.end = fw_log->buf.data;
 	fw_log->buf.dataend = fw_log->buf.data + FW_LOG_SIZE;
 	spin_lock_init(&fw_log->lock);
 
-	printk("fw_log_init: %lx, %lx\n", (unsigned long)fw_log->buf.start, (unsigned long)(fw_log->buf.dataend));
+	printk("fw_log_init: %lx, %lx\n", (unsigned long)fw_log->buf.start,
+	       (unsigned long)(fw_log->buf.dataend));
 	return 0;
 }
 
@@ -41,7 +42,6 @@ void rwnx_fw_log_deinit(struct rwnx_fw_log *fw_log)
 	if (fw_log->buf.data)
 		kfree(fw_log->buf.data);
 	fw_log->buf.start = NULL;
-	fw_log->buf.end   = NULL;
+	fw_log->buf.end = NULL;
 	fw_log->buf.size = 0;
 }
-

@@ -20,7 +20,8 @@
  ****************************************************************************************
  */
 
-struct rwnx_mesh_proxy *rwnx_get_mesh_proxy_info(struct rwnx_vif *p_rwnx_vif, u8 *p_sta_addr, bool local)
+struct rwnx_mesh_proxy *rwnx_get_mesh_proxy_info(struct rwnx_vif *p_rwnx_vif,
+						 u8 *p_sta_addr, bool local)
 {
 	struct rwnx_mesh_proxy *p_mesh_proxy = NULL;
 	struct rwnx_mesh_proxy *p_cur_proxy;

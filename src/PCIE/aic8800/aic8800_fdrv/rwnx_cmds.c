@@ -29,15 +29,19 @@
  *
  */
 extern int wifi_fail;
-extern int aicwf_sdio_writeb(struct aic_sdio_dev *sdiodev, uint regaddr, u8 val);
+extern int aicwf_sdio_writeb(struct aic_sdio_dev *sdiodev, uint regaddr,
+			     u8 val);
 
 void rwnx_cmd_free(struct rwnx_cmd *cmd);
 
 static void cmd_dump(const struct rwnx_cmd *cmd)
 {
-	printk(KERN_CRIT "tkn[%d]  flags:%04x  result:%3d  cmd:%4d-%-24s - reqcfm(%4d-%-s)\n",
-		   cmd->tkn, cmd->flags, cmd->result, cmd->id, RWNX_ID2STR(cmd->id),
-		   cmd->reqid, cmd->reqid != (lmac_msg_id_t)-1 ? RWNX_ID2STR(cmd->reqid) : "none");
+	printk(KERN_CRIT
+	       "tkn[%d]  flags:%04x  result:%3d  cmd:%4d-%-24s - reqcfm(%4d-%-s)\n",
+	       cmd->tkn, cmd->flags, cmd->result, cmd->id, RWNX_ID2STR(cmd->id),
+	       cmd->reqid,
+	       cmd->reqid != (lmac_msg_id_t)-1 ? RWNX_ID2STR(cmd->reqid) :
+						 "none");
 }
 
 /**
@@ -53,7 +57,7 @@ static void cmd_complete(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 
 	cmd->flags |= RWNX_CMD_FLAG_DONE;
 	if (cmd->flags & RWNX_CMD_FLAG_NONBLOCK) {
-		rwnx_cmd_free(cmd);//kfree(cmd);
+		rwnx_cmd_free(cmd); //kfree(cmd);
 	} else {
 		if (RWNX_CMD_WAIT_COMPLETE(cmd->flags)) {
 			cmd->result = 0;
@@ -62,7 +66,8 @@ static void cmd_complete(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 	}
 }
 
-int cmd_mgr_queue_force_defer(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
+int cmd_mgr_queue_force_defer(struct rwnx_cmd_mgr *cmd_mgr,
+			      struct rwnx_cmd *cmd)
 {
 	bool defer_push = false;
 
@@ -73,23 +78,23 @@ int cmd_mgr_queue_force_defer(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd
 	spin_lock_bh(&cmd_mgr->lock);
 
 	if (cmd_mgr->state == RWNX_CMD_MGR_STATE_CRASHED) {
-		printk(KERN_CRIT"cmd queue crashed\n");
+		printk(KERN_CRIT "cmd queue crashed\n");
 		cmd->result = -EPIPE;
 		spin_unlock_bh(&cmd_mgr->lock);
 		return -EPIPE;
 	}
 
-	#ifndef CONFIG_RWNX_FHOST
+#ifndef CONFIG_RWNX_FHOST
 	if (!list_empty(&cmd_mgr->cmds)) {
 		if (cmd_mgr->queue_sz == cmd_mgr->max_queue_sz) {
-			printk(KERN_CRIT"Too many cmds (%d) already queued\n",
-				   cmd_mgr->max_queue_sz);
+			printk(KERN_CRIT "Too many cmds (%d) already queued\n",
+			       cmd_mgr->max_queue_sz);
 			cmd->result = -ENOMEM;
 			spin_unlock_bh(&cmd_mgr->lock);
 			return -ENOMEM;
 		}
 	}
-	#endif
+#endif
 
 	cmd->flags |= RWNX_CMD_FLAG_WAIT_PUSH;
 	defer_push = true;
@@ -97,7 +102,7 @@ int cmd_mgr_queue_force_defer(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd
 	if (cmd->flags & RWNX_CMD_FLAG_REQ_CFM)
 		cmd->flags |= RWNX_CMD_FLAG_WAIT_CFM;
 
-	cmd->tkn    = cmd_mgr->next_tkn++;
+	cmd->tkn = cmd_mgr->next_tkn++;
 	cmd->result = -EINTR;
 
 	if (!(cmd->flags & RWNX_CMD_FLAG_NONBLOCK))
@@ -116,15 +121,18 @@ static int cmd_mgr_queue(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 	int err = 0;
 #ifdef AICWF_SDIO_SUPPORT
 	int ret;
-	struct aic_sdio_dev *sdiodev = container_of(cmd_mgr, struct aic_sdio_dev, cmd_mgr);
+	struct aic_sdio_dev *sdiodev =
+		container_of(cmd_mgr, struct aic_sdio_dev, cmd_mgr);
 	struct rwnx_hw *rwnx_hw = sdiodev->rwnx_hw;
 #endif
 #ifdef AICWF_USB_SUPPORT
-	struct aic_usb_dev *usbdev = container_of(cmd_mgr, struct aic_usb_dev, cmd_mgr);
+	struct aic_usb_dev *usbdev =
+		container_of(cmd_mgr, struct aic_usb_dev, cmd_mgr);
 	struct rwnx_hw *rwnx_hw = usbdev->rwnx_hw;
 #endif
 #ifdef AICWF_PCIE_SUPPORT
-	struct aic_pci_dev *pciedev = container_of(cmd_mgr, struct aic_pci_dev, cmd_mgr);
+	struct aic_pci_dev *pciedev =
+		container_of(cmd_mgr, struct aic_pci_dev, cmd_mgr);
 	struct rwnx_hw *rwnx_hw = pciedev->rwnx_hw;
 #endif
 
@@ -136,15 +144,15 @@ static int cmd_mgr_queue(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 #ifdef CREATE_TRACE_POINTS
 	trace_msg_send(cmd->id);
 #endif
-	if(cmd->e2a_msg != NULL) {
+	if (cmd->e2a_msg != NULL) {
 		do {
-			if(cmd_mgr->state == RWNX_CMD_MGR_STATE_CRASHED)
+			if (cmd_mgr->state == RWNX_CMD_MGR_STATE_CRASHED)
 				break;
 			spin_lock_bh(&cmd_mgr->lock);
 			empty = list_empty(&cmd_mgr->cmds);
-			if(!empty) {
+			if (!empty) {
 				spin_unlock_bh(&cmd_mgr->lock);
-				if(in_softirq()) {
+				if (in_softirq()) {
 					printk("in_softirq:check cmdqueue empty\n");
 					mdelay(10);
 				} else {
@@ -152,32 +160,33 @@ static int cmd_mgr_queue(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 					msleep(50);
 				}
 			}
-		} while(!empty);//wait for cmd queue empty
+		} while (!empty); //wait for cmd queue empty
 	} else {
 		spin_lock_bh(&cmd_mgr->lock);
 	}
 
-
 	if (cmd_mgr->state == RWNX_CMD_MGR_STATE_CRASHED) {
-		printk(KERN_CRIT"cmd queue crashed\n");
+		printk(KERN_CRIT "cmd queue crashed\n");
 		cmd->result = -EPIPE;
 		spin_unlock_bh(&cmd_mgr->lock);
 		return -EPIPE;
 	}
 
-	#ifndef CONFIG_RWNX_FHOST
+#ifndef CONFIG_RWNX_FHOST
 	if (!list_empty(&cmd_mgr->cmds)) {
 		struct rwnx_cmd *last;
 
 		if (cmd_mgr->queue_sz == cmd_mgr->max_queue_sz) {
-			printk(KERN_CRIT"Too many cmds (%d) already queued\n",
-				   cmd_mgr->max_queue_sz);
+			printk(KERN_CRIT "Too many cmds (%d) already queued\n",
+			       cmd_mgr->max_queue_sz);
 			cmd->result = -ENOMEM;
 			spin_unlock_bh(&cmd_mgr->lock);
 			return -ENOMEM;
 		}
 		last = list_entry(cmd_mgr->cmds.prev, struct rwnx_cmd, list);
-		if (last->flags & (RWNX_CMD_FLAG_WAIT_ACK | RWNX_CMD_FLAG_WAIT_PUSH | RWNX_CMD_FLAG_WAIT_CFM)) {
+		if (last->flags &
+		    (RWNX_CMD_FLAG_WAIT_ACK | RWNX_CMD_FLAG_WAIT_PUSH |
+		     RWNX_CMD_FLAG_WAIT_CFM)) {
 #if 0 // queue even NONBLOCK command.
 			if (cmd->flags & RWNX_CMD_FLAG_NONBLOCK) {
 				printk(KERN_CRIT"cmd queue busy\n");
@@ -190,7 +199,7 @@ static int cmd_mgr_queue(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 			defer_push = true;
 		}
 	}
-	#endif
+#endif
 #ifdef CONFIG_WS
 	rwnx_pm_stay_awake_pc(rwnx_hw);
 #endif
@@ -200,7 +209,7 @@ static int cmd_mgr_queue(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 	if (cmd->flags & RWNX_CMD_FLAG_REQ_CFM)
 		cmd->flags |= RWNX_CMD_FLAG_WAIT_CFM;
 
-	cmd->tkn    = cmd_mgr->next_tkn++;
+	cmd->tkn = cmd_mgr->next_tkn++;
 	cmd->result = -EINTR;
 
 	if (!(cmd->flags & RWNX_CMD_FLAG_NONBLOCK))
@@ -210,9 +219,9 @@ static int cmd_mgr_queue(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 	cmd_mgr->queue_sz++;
 
 	if (cmd->a2e_msg->id == ME_TRAFFIC_IND_REQ
-	#ifdef AICWF_ARP_OFFLOAD
-		|| cmd->a2e_msg->id == MM_SET_ARPOFFLOAD_REQ
-	#endif
+#ifdef AICWF_ARP_OFFLOAD
+	    || cmd->a2e_msg->id == MM_SET_ARPOFFLOAD_REQ
+#endif
 	) {
 		defer_push = true;
 		cmd->flags |= RWNX_CMD_FLAG_WAIT_PUSH;
@@ -221,20 +230,26 @@ static int cmd_mgr_queue(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 
 	spin_unlock_bh(&cmd_mgr->lock);
 	if (!defer_push) {
-		//printk("queue:id=%x, param_len=%u\n",cmd->a2e_msg->id, cmd->a2e_msg->param_len);
-		#ifdef AICWF_SDIO_SUPPORT
-		aicwf_set_cmd_tx((void *)(sdiodev), cmd->a2e_msg, sizeof(struct lmac_msg) + cmd->a2e_msg->param_len);
-		#endif
-		#ifdef AICWF_USB_SUPPORT
-		aicwf_set_cmd_tx((void *)(usbdev), cmd->a2e_msg, sizeof(struct lmac_msg) + cmd->a2e_msg->param_len);
-		#endif
-		#ifdef AICWF_PCIE_SUPPORT
-        aicwf_set_cmd_tx((void *)(pciedev), cmd->a2e_msg, sizeof(struct lmac_msg) + cmd->a2e_msg->param_len);
-        #endif
+//printk("queue:id=%x, param_len=%u\n",cmd->a2e_msg->id, cmd->a2e_msg->param_len);
+#ifdef AICWF_SDIO_SUPPORT
+		aicwf_set_cmd_tx((void *)(sdiodev), cmd->a2e_msg,
+				 sizeof(struct lmac_msg) +
+					 cmd->a2e_msg->param_len);
+#endif
+#ifdef AICWF_USB_SUPPORT
+		aicwf_set_cmd_tx((void *)(usbdev), cmd->a2e_msg,
+				 sizeof(struct lmac_msg) +
+					 cmd->a2e_msg->param_len);
+#endif
+#ifdef AICWF_PCIE_SUPPORT
+		aicwf_set_cmd_tx((void *)(pciedev), cmd->a2e_msg,
+				 sizeof(struct lmac_msg) +
+					 cmd->a2e_msg->param_len);
+#endif
 		//rwnx_ipc_msg_push(rwnx_hw, cmd, RWNX_CMD_A2EMSG_LEN(cmd->a2e_msg));
 		kfree(cmd->a2e_msg);
 	} else {
-        if(cmd_mgr->queue_sz <= 1)
+		if (cmd_mgr->queue_sz <= 1)
 			WAKE_CMD_WORK(cmd_mgr);
 #ifdef CONFIG_WS
 		rwnx_pm_relax_pc(rwnx_hw);
@@ -252,29 +267,42 @@ static int cmd_mgr_queue(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 			/* TODO: kill the cmd at fw level */
 		}
 #else
-		unsigned long tout = msecs_to_jiffies(RWNX_80211_CMD_TIMEOUT_MS * cmd_mgr->queue_sz);
+		unsigned long tout = msecs_to_jiffies(
+			RWNX_80211_CMD_TIMEOUT_MS * cmd_mgr->queue_sz);
 		if (!wait_for_completion_timeout(&cmd->complete, tout)) {
-			printk(KERN_CRIT"cmd timed-out\n");
+			printk(KERN_CRIT "cmd timed-out\n");
 			wifi_fail = 1;
 
 			//aic debug add
-			printk("rxbuf_idx %d ",rwnx_hw->ipc_env->rxbuf_idx);
-			for(i=0; i < rwnx_hw->ipc_env->rxbuf_nb; i++){
-				printk("%d dma %x ,pattern %x",i,rwnx_hw->ipc_env->shared->host_rxbuf[i].dma_addr,rwnx_hw->ipc_env->shared->host_rxbuf[i].pattern);
+			printk("rxbuf_idx %d ", rwnx_hw->ipc_env->rxbuf_idx);
+			for (i = 0; i < rwnx_hw->ipc_env->rxbuf_nb; i++) {
+				printk("%d dma %x ,pattern %x", i,
+				       rwnx_hw->ipc_env->shared->host_rxbuf[i]
+					       .dma_addr,
+				       rwnx_hw->ipc_env->shared->host_rxbuf[i]
+					       .pattern);
 			}
 
-			printk("txdesc_idx %d",rwnx_hw->ipc_env->txdmadesc_idx);
-			for(i=0; i < IPC_TXDMA_DESC_CNT; i++){
-				printk("%d dma %x ,ready %x ,pt %x",i,rwnx_hw->ipc_env->shared->txdesc[i].packet_dma_addr,rwnx_hw->ipc_env->shared->txdesc[i].ready,rwnx_hw->ipc_env->shared->txdesc[i].pattern);
+			printk("txdesc_idx %d",
+			       rwnx_hw->ipc_env->txdmadesc_idx);
+			for (i = 0; i < IPC_TXDMA_DESC_CNT; i++) {
+				printk("%d dma %x ,ready %x ,pt %x", i,
+				       rwnx_hw->ipc_env->shared->txdesc[i]
+					       .packet_dma_addr,
+				       rwnx_hw->ipc_env->shared->txdesc[i].ready,
+				       rwnx_hw->ipc_env->shared->txdesc[i]
+					       .pattern);
 			}
 			//aic debug end
 
-		#ifdef AICWF_SDIO_SUPPORT
-			ret = aicwf_sdio_writeb(sdiodev, sdiodev->sdio_reg.wakeup_reg, 2);
+#ifdef AICWF_SDIO_SUPPORT
+			ret = aicwf_sdio_writeb(
+				sdiodev, sdiodev->sdio_reg.wakeup_reg, 2);
 			if (ret < 0) {
-				sdio_err("reg:%d write failed!\n", sdiodev->sdio_reg.wakeup_reg);
+				sdio_err("reg:%d write failed!\n",
+					 sdiodev->sdio_reg.wakeup_reg);
 			}
-		#endif
+#endif
 
 			cmd_dump(cmd);
 			spin_lock_bh(&cmd_mgr->lock);
@@ -290,7 +318,7 @@ static int cmd_mgr_queue(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 			list_del(&cmd->list);
 			cmd_mgr->queue_sz--;
 			spin_unlock_bh(&cmd_mgr->lock);
-			rwnx_cmd_free(cmd);//kfree(cmd);
+			rwnx_cmd_free(cmd); //kfree(cmd);
 			if (!list_empty(&cmd_mgr->cmds))
 				WAKE_CMD_WORK(cmd_mgr);
 		}
@@ -325,8 +353,8 @@ static int cmd_mgr_llind(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 			}
 		}
 		if (cur->flags & RWNX_CMD_FLAG_WAIT_PUSH) {
-				next = cur;
-				break;
+			next = cur;
+			break;
 		}
 	}
 	if (!acked) {
@@ -338,12 +366,12 @@ static int cmd_mgr_llind(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 	}
 
 	if (next) {
-	#if 0 //there is no ack
+#if 0 //there is no ack
 		struct rwnx_hw *rwnx_hw = container_of(cmd_mgr, struct rwnx_hw, cmd_mgr);
 		next->flags &= ~RWNX_CMD_FLAG_WAIT_PUSH;
 		rwnx_ipc_msg_push(rwnx_hw, next, RWNX_CMD_A2EMSG_LEN(next->a2e_msg));
 		kfree(next->a2e_msg);
-	#endif
+#endif
 	}
 	spin_unlock(&cmd_mgr->lock);
 
@@ -352,19 +380,23 @@ static int cmd_mgr_llind(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd *cmd)
 
 void cmd_mgr_task_process(struct work_struct *work)
 {
-	struct rwnx_cmd_mgr *cmd_mgr = container_of(work, struct rwnx_cmd_mgr, cmdWork);
+	struct rwnx_cmd_mgr *cmd_mgr =
+		container_of(work, struct rwnx_cmd_mgr, cmdWork);
 	struct rwnx_cmd *cur, *next = NULL;
 	unsigned long tout;
 #ifdef AICWF_SDIO_SUPPORT
-	struct aic_sdio_dev *sdiodev = container_of(cmd_mgr, struct aic_sdio_dev, cmd_mgr);
+	struct aic_sdio_dev *sdiodev =
+		container_of(cmd_mgr, struct aic_sdio_dev, cmd_mgr);
 	struct rwnx_hw *rwnx_hw = sdiodev->rwnx_hw;
 #endif
 #ifdef AICWF_USB_SUPPORT
-	struct aic_usb_dev *usbdev = container_of(cmd_mgr, struct aic_usb_dev, cmd_mgr);
+	struct aic_usb_dev *usbdev =
+		container_of(cmd_mgr, struct aic_usb_dev, cmd_mgr);
 	struct rwnx_hw *rwnx_hw = usbdev->rwnx_hw;
 #endif
 #ifdef AICWF_PCIE_SUPPORT
-	struct aic_pci_dev *pcidev = container_of(cmd_mgr, struct aic_pci_dev, cmd_mgr);
+	struct aic_pci_dev *pcidev =
+		container_of(cmd_mgr, struct aic_pci_dev, cmd_mgr);
 	struct rwnx_hw *rwnx_hw = pcidev->rwnx_hw;
 #endif
 	int i = 0;
@@ -376,8 +408,9 @@ void cmd_mgr_task_process(struct work_struct *work)
 		spin_lock_bh(&cmd_mgr->lock);
 
 		list_for_each_entry(cur, &cmd_mgr->cmds, list) {
-			if (cur->flags & RWNX_CMD_FLAG_WAIT_PUSH) { //just judge the first
-					next = cur;
+			if (cur->flags &
+			    RWNX_CMD_FLAG_WAIT_PUSH) { //just judge the first
+				next = cur;
 			}
 			break;
 		}
@@ -392,40 +425,70 @@ void cmd_mgr_task_process(struct work_struct *work)
 			//printk("cmd_process, cmd->id=%d, tkn=%d\r\n",next->reqid, next->tkn);
 			//rwnx_ipc_msg_push(rwnx_hw, next, RWNX_CMD_A2EMSG_LEN(next->a2e_msg));
 #ifdef AICWF_SDIO_SUPPORT
-			aicwf_set_cmd_tx((void *)(sdiodev), next->a2e_msg, sizeof(struct lmac_msg) + next->a2e_msg->param_len);
+			aicwf_set_cmd_tx((void *)(sdiodev), next->a2e_msg,
+					 sizeof(struct lmac_msg) +
+						 next->a2e_msg->param_len);
 #endif
 #ifdef AICWF_USB_SUPPORT
-			aicwf_set_cmd_tx((void *)(usbdev), next->a2e_msg, sizeof(struct lmac_msg) + next->a2e_msg->param_len);
+			aicwf_set_cmd_tx((void *)(usbdev), next->a2e_msg,
+					 sizeof(struct lmac_msg) +
+						 next->a2e_msg->param_len);
 #endif
 #ifdef AICWF_PCIE_SUPPORT
-			aicwf_set_cmd_tx((void *)(pcidev), next->a2e_msg, sizeof(struct lmac_msg) + next->a2e_msg->param_len);
+			aicwf_set_cmd_tx((void *)(pcidev), next->a2e_msg,
+					 sizeof(struct lmac_msg) +
+						 next->a2e_msg->param_len);
 #endif
 
 			kfree(next->a2e_msg);
 
-			tout = msecs_to_jiffies(RWNX_80211_CMD_TIMEOUT_MS * cmd_mgr->queue_sz);
+			tout = msecs_to_jiffies(RWNX_80211_CMD_TIMEOUT_MS *
+						cmd_mgr->queue_sz);
 #ifdef CONFIG_WS
 			rwnx_pm_stay_awake_pc(rwnx_hw);
 #endif
-			if (!wait_for_completion_timeout(&next->complete, tout)) {
-				printk(KERN_CRIT"cmd timed-out\n");
+			if (!wait_for_completion_timeout(&next->complete,
+							 tout)) {
+				printk(KERN_CRIT "cmd timed-out\n");
 				wifi_fail = 1;
 
 				//aic debug add
-				printk("rxbuf_idx %d ",rwnx_hw->ipc_env->rxbuf_idx);
-				for(i=0; i < rwnx_hw->ipc_env->rxbuf_nb; i++){
-					printk("%d dma %x ,pattern %x",i,rwnx_hw->ipc_env->shared->host_rxbuf[i].dma_addr,rwnx_hw->ipc_env->shared->host_rxbuf[i].pattern);
+				printk("rxbuf_idx %d ",
+				       rwnx_hw->ipc_env->rxbuf_idx);
+				for (i = 0; i < rwnx_hw->ipc_env->rxbuf_nb;
+				     i++) {
+					printk("%d dma %x ,pattern %x", i,
+					       rwnx_hw->ipc_env->shared
+						       ->host_rxbuf[i]
+						       .dma_addr,
+					       rwnx_hw->ipc_env->shared
+						       ->host_rxbuf[i]
+						       .pattern);
 				}
 
-				printk("txdesc_idx %d",rwnx_hw->ipc_env->txdmadesc_idx);
-				for(i=0; i < IPC_TXDMA_DESC_CNT; i++){
-					printk("%d dma %x ,ready %x ,pt %x",i,rwnx_hw->ipc_env->shared->txdesc[i].packet_dma_addr,rwnx_hw->ipc_env->shared->txdesc[i].ready,rwnx_hw->ipc_env->shared->txdesc[i].pattern);
+				printk("txdesc_idx %d",
+				       rwnx_hw->ipc_env->txdmadesc_idx);
+				for (i = 0; i < IPC_TXDMA_DESC_CNT; i++) {
+					printk("%d dma %x ,ready %x ,pt %x", i,
+					       rwnx_hw->ipc_env->shared
+						       ->txdesc[i]
+						       .packet_dma_addr,
+					       rwnx_hw->ipc_env->shared
+						       ->txdesc[i]
+						       .ready,
+					       rwnx_hw->ipc_env->shared
+						       ->txdesc[i]
+						       .pattern);
 				}
 				//aic debug end
 
 #ifdef AICWF_SDIO_SUPPORT
-				if (aicwf_sdio_writeb(sdiodev, sdiodev->sdio_reg.wakeup_reg, 2) < 0) {
-					sdio_err("reg:%d write failed!\n", sdiodev->sdio_reg.wakeup_reg);
+				if (aicwf_sdio_writeb(
+					    sdiodev,
+					    sdiodev->sdio_reg.wakeup_reg,
+					    2) < 0) {
+					sdio_err("reg:%d write failed!\n",
+						 sdiodev->sdio_reg.wakeup_reg);
 				}
 #endif
 				cmd_dump(next);
@@ -444,19 +507,17 @@ void cmd_mgr_task_process(struct work_struct *work)
 				list_del(&next->list);
 				cmd_mgr->queue_sz--;
 				spin_unlock_bh(&cmd_mgr->lock);
-				rwnx_cmd_free(next);//kfree(next);
+				rwnx_cmd_free(next); //kfree(next);
 #ifdef CONFIG_WS
 				rwnx_pm_relax_pc(rwnx_hw);
 #endif
 			}
 		}
 	}
-
 }
 
-
 static int cmd_mgr_run_callback(struct rwnx_hw *rwnx_hw, struct rwnx_cmd *cmd,
-								struct rwnx_cmd_e2amsg *msg, msg_cb_fct cb)
+				struct rwnx_cmd_e2amsg *msg, msg_cb_fct cb)
 {
 	int res;
 
@@ -475,19 +536,22 @@ static int cmd_mgr_run_callback(struct rwnx_hw *rwnx_hw, struct rwnx_cmd *cmd,
  *
 
  */
-static int cmd_mgr_msgind(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd_e2amsg *msg,
-						  msg_cb_fct cb)
+static int cmd_mgr_msgind(struct rwnx_cmd_mgr *cmd_mgr,
+			  struct rwnx_cmd_e2amsg *msg, msg_cb_fct cb)
 {
 #ifdef AICWF_SDIO_SUPPORT
-	struct aic_sdio_dev *sdiodev = container_of(cmd_mgr, struct aic_sdio_dev, cmd_mgr);
+	struct aic_sdio_dev *sdiodev =
+		container_of(cmd_mgr, struct aic_sdio_dev, cmd_mgr);
 	struct rwnx_hw *rwnx_hw = sdiodev->rwnx_hw;
 #endif
 #ifdef AICWF_USB_SUPPORT
-	struct aic_usb_dev *usbdev = container_of(cmd_mgr, struct aic_usb_dev, cmd_mgr);
+	struct aic_usb_dev *usbdev =
+		container_of(cmd_mgr, struct aic_usb_dev, cmd_mgr);
 	struct rwnx_hw *rwnx_hw = usbdev->rwnx_hw;
 #endif
 #ifdef AICWF_PCIE_SUPPORT
-	struct aic_pci_dev *pcidev = container_of(cmd_mgr, struct aic_pci_dev, cmd_mgr);
+	struct aic_pci_dev *pcidev =
+		container_of(cmd_mgr, struct aic_pci_dev, cmd_mgr);
 	struct rwnx_hw *rwnx_hw = pcidev->rwnx_hw;
 #endif
 
@@ -502,20 +566,23 @@ static int cmd_mgr_msgind(struct rwnx_cmd_mgr *cmd_mgr, struct rwnx_cmd_e2amsg *
 	spin_lock_bh(&cmd_mgr->lock);
 	list_for_each_entry_safe(cmd, pos, &cmd_mgr->cmds, list) {
 		if (cmd->reqid == msg->id &&
-			(cmd->flags & RWNX_CMD_FLAG_WAIT_CFM)) {
-
+		    (cmd->flags & RWNX_CMD_FLAG_WAIT_CFM)) {
 			if (!cmd_mgr_run_callback(rwnx_hw, cmd, msg, cb)) {
 				found = true;
 				cmd->flags &= ~RWNX_CMD_FLAG_WAIT_CFM;
 
-				if (WARN((msg->param_len > RWNX_CMD_E2AMSG_LEN_MAX),
-						 "Unexpect E2A msg len %d > %d\n", msg->param_len,
-						 RWNX_CMD_E2AMSG_LEN_MAX)) {
-					msg->param_len = RWNX_CMD_E2AMSG_LEN_MAX;
+				if (WARN((msg->param_len >
+					  RWNX_CMD_E2AMSG_LEN_MAX),
+					 "Unexpect E2A msg len %d > %d\n",
+					 msg->param_len,
+					 RWNX_CMD_E2AMSG_LEN_MAX)) {
+					msg->param_len =
+						RWNX_CMD_E2AMSG_LEN_MAX;
 				}
 
 				if (cmd->e2a_msg && msg->param_len)
-					memcpy(cmd->e2a_msg, &msg->param, msg->param_len);
+					memcpy(cmd->e2a_msg, &msg->param,
+					       msg->param_len);
 
 				if (RWNX_CMD_WAIT_COMPLETE(cmd->flags))
 					cmd_complete(cmd_mgr, cmd);
@@ -540,9 +607,8 @@ static void cmd_mgr_print(struct rwnx_cmd_mgr *cmd_mgr)
 	struct rwnx_cmd *cur;
 
 	spin_lock_bh(&cmd_mgr->lock);
-	RWNX_DBG("q_sz/max: %2d / %2d - next tkn: %d\n",
-			 cmd_mgr->queue_sz, cmd_mgr->max_queue_sz,
-			 cmd_mgr->next_tkn);
+	RWNX_DBG("q_sz/max: %2d / %2d - next tkn: %d\n", cmd_mgr->queue_sz,
+		 cmd_mgr->max_queue_sz, cmd_mgr->next_tkn);
 	list_for_each_entry(cur, &cmd_mgr->cmds, list) {
 		cmd_dump(cur);
 	}
@@ -573,10 +639,10 @@ void rwnx_cmd_mgr_init(struct rwnx_cmd_mgr *cmd_mgr)
 	cmd_mgr->state = RWNX_CMD_MGR_STATE_INITED;
 	spin_lock_init(&cmd_mgr->lock);
 	cmd_mgr->max_queue_sz = RWNX_CMD_MAX_QUEUED;
-	cmd_mgr->queue  = &cmd_mgr_queue;
-	cmd_mgr->print  = &cmd_mgr_print;
-	cmd_mgr->drain  = &cmd_mgr_drain;
-	cmd_mgr->llind  = &cmd_mgr_llind;
+	cmd_mgr->queue = &cmd_mgr_queue;
+	cmd_mgr->print = &cmd_mgr_print;
+	cmd_mgr->drain = &cmd_mgr_drain;
+	cmd_mgr->llind = &cmd_mgr_llind;
 	cmd_mgr->msgind = &cmd_mgr_msgind;
 
 	INIT_WORK(&cmd_mgr->cmdWork, cmd_mgr_task_process);
@@ -623,16 +689,16 @@ void aicwf_set_cmd_tx(void *dev, struct lmac_msg *msg, uint len)
 	buffer = bus->cmd_buf;
 
 	memset(buffer, 0, CMD_BUF_MAX);
-	buffer[0] = (len+4) & 0x00ff;
-	buffer[1] = ((len+4) >> 8) &0x0f;
+	buffer[0] = (len + 4) & 0x00ff;
+	buffer[1] = ((len + 4) >> 8) & 0x0f;
 	buffer[2] = 0x11;
-    /*if (sdiodev->chipid == PRODUCT_ID_AIC8801 || sdiodev->chipid == PRODUCT_ID_AIC8800DC ||
+	/*if (sdiodev->chipid == PRODUCT_ID_AIC8801 || sdiodev->chipid == PRODUCT_ID_AIC8800DC ||
         sdiodev->chipid == PRODUCT_ID_AIC8800DW)
         buffer[3] = 0x0;
     else if (sdiodev->chipid == PRODUCT_ID_AIC8800D80)
 	    buffer[3] = crc8_ponl_107(&buffer[0], 3); // crc8*/
 #ifdef AICWF_SDIO_SUPPORT
-    buffer[3] = crc8_ponl_107(&buffer[0], 3); // crc8
+	buffer[3] = crc8_ponl_107(&buffer[0], 3); // crc8
 #endif
 	index += 4;
 	//there is a dummy word
@@ -652,4 +718,3 @@ void aicwf_set_cmd_tx(void *dev, struct lmac_msg *msg, uint len)
 	aicwf_bus_txmsg(bus, buffer, len + 8);
 	spin_unlock_bh(&pciedev->txmsg_lock);
 }
-

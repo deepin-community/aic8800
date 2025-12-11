@@ -5,7 +5,7 @@
 
 static inline void rwnx_print_version(void)
 {
-	AICWFDBG(LOGINFO, RWNX_VERS_BANNER"\n");
+	AICWFDBG(LOGINFO, RWNX_VERS_BANNER "\n");
 }
 
 #endif /* _RWNX_VERSION_H_ */

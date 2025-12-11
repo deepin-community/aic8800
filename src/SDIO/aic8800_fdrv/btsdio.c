@@ -37,7 +37,6 @@
 
 #include <net/bluetooth/bluetooth.h>
 
-
 #include "aic_btsdio.h"
 #include "rwnx_msg_tx.h"
 
@@ -46,7 +45,7 @@
 #define VERSION "0.1"
 #if CONFIG_BLUEDROID == 0
 struct btsdio_data {
-	struct hci_dev   *hdev;
+	struct hci_dev *hdev;
 
 	struct work_struct work;
 
@@ -54,32 +53,21 @@ struct btsdio_data {
 };
 struct hci_dev *ghdev = NULL;
 
-void bt_data_dump(char* tag, void* data, unsigned long len){
+void bt_data_dump(char *tag, void *data, unsigned long len)
+{
 	unsigned long i = 0;
-	uint8_t* data_ = (uint8_t* )data;
+	uint8_t *data_ = (uint8_t *)data;
 
 	printk("%s %s len:(%lu)\r\n", __func__, tag, len);
 
-	for (i = 0; i < len; i += 16){
-	printk("%02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X\r\n",
-			data_[0 + i],
-			data_[1 + i],
-			data_[2 + i],
-			data_[3 + i],
-			data_[4 + i],
-			data_[5 + i],
-			data_[6 + i],
-			data_[7 + i],
-			data_[8 + i],
-			data_[9 + i],
-			data_[10 + i],
-			data_[11 + i],
-			data_[12 + i],
-			data_[13 + i],
-			data_[14 + i],
-			data_[15 + i]);
+	for (i = 0; i < len; i += 16) {
+		printk("%02X %02X %02X %02X %02X %02X %02X %02X  %02X %02X %02X %02X %02X %02X %02X %02X\r\n",
+		       data_[0 + i], data_[1 + i], data_[2 + i], data_[3 + i],
+		       data_[4 + i], data_[5 + i], data_[6 + i], data_[7 + i],
+		       data_[8 + i], data_[9 + i], data_[10 + i], data_[11 + i],
+		       data_[12 + i], data_[13 + i], data_[14 + i],
+		       data_[15 + i]);
 	}
-
 }
 
 static int btsdio_tx_packet(struct btsdio_data *data, struct sk_buff *skb)
@@ -93,9 +81,10 @@ static int btsdio_tx_packet(struct btsdio_data *data, struct sk_buff *skb)
 	skb->data[0] = hci_skb_pkt_type(skb);
 
 	//bt_data_dump("btwrite", skb->data, skb->len);
-	err = rwnx_sdio_bt_send_req(g_rwnx_plat->sdiodev->rwnx_hw, skb->len, skb);
-	if(err<0){
-		printk("%s rwnx_sdio_bt_send_req error %d",__func__,err);
+	err = rwnx_sdio_bt_send_req(g_rwnx_plat->sdiodev->rwnx_hw, skb->len,
+				    skb);
+	if (err < 0) {
+		printk("%s rwnx_sdio_bt_send_req error %d", __func__, err);
 		return err;
 	}
 
@@ -112,8 +101,7 @@ static void btsdio_work(struct work_struct *work)
 	struct sk_buff *skb;
 	int err;
 
-	AICBT_INFO("%s,%s", data->hdev->name,__func__);
-
+	AICBT_INFO("%s,%s", data->hdev->name, __func__);
 
 	while ((skb = skb_dequeue(&data->txq))) {
 		err = btsdio_tx_packet(data, skb);
@@ -129,41 +117,41 @@ static void btsdio_work(struct work_struct *work)
  * Device is held on return. */
 struct hci_dev *hci_dev_get(int index)
 {
-    if (index != 0)
-        return NULL;
+	if (index != 0)
+		return NULL;
 
-    return ghdev;
+	return ghdev;
 }
 
-int bt_sdio_recv(u8 *data,u32 data_len)
+int bt_sdio_recv(u8 *data, u32 data_len)
 {
 	struct sk_buff *skb;
-	int type= data[0];
+	int type = data[0];
 	struct hci_dev *hdev;
 	u32 len = data_len;
-	int ret=0;
+	int ret = 0;
 	hdev = hci_dev_get(0);
-    if (!hdev) {
-        AICWFDBG(LOGERROR,"%s: Failed to get hci dev[NULL]", __func__);
-        return -ENODEV;
-    }
-
-	skb = alloc_skb(len-1,GFP_ATOMIC);
-	if(!skb){
-		AICWFDBG(LOGERROR, "alloc skb fail %s \n",__func__);
+	if (!hdev) {
+		AICWFDBG(LOGERROR, "%s: Failed to get hci dev[NULL]", __func__);
+		return -ENODEV;
 	}
-	memcpy(skb_put(skb,len-1) ,(data+1), len-1);
+
+	skb = alloc_skb(len - 1, GFP_ATOMIC);
+	if (!skb) {
+		AICWFDBG(LOGERROR, "alloc skb fail %s \n", __func__);
+	}
+	memcpy(skb_put(skb, len - 1), (data + 1), len - 1);
 	hdev->stat.byte_rx += len;
 	hci_skb_pkt_type(skb) = type;
 	//if(bt_bypass_event(skb)){
-		//kfree_skb(skb);
-		///return 0;
+	//kfree_skb(skb);
+	///return 0;
 	//}
-	AICBT_INFO("skb type %d",type);
+	AICBT_INFO("skb type %d", type);
 	//bt_data_dump("bt_skb", skb, skb->len);
 	ret = hci_recv_frame(hdev, skb);
-	if(ret < 0){
-		AICWFDBG(LOGERROR, "hci_recv_frame fail %d\n",ret);
+	if (ret < 0) {
+		AICWFDBG(LOGERROR, "hci_recv_frame fail %d\n", ret);
 		hdev->stat.err_rx++;
 		kfree_skb(skb);
 	}
@@ -184,7 +172,7 @@ static int btsdio_close(struct hci_dev *hdev)
 {
 	//struct btsdio_data *data = hci_get_drvdata(hdev);
 
-	AICBT_INFO("%s,%s", hdev->name,__func__);
+	AICBT_INFO("%s,%s", hdev->name, __func__);
 
 	return 0;
 }
@@ -193,7 +181,7 @@ static int btsdio_flush(struct hci_dev *hdev)
 {
 	struct btsdio_data *data = hci_get_drvdata(hdev);
 
-	AICBT_INFO("%s,%s", hdev->name,__func__);
+	AICBT_INFO("%s,%s", hdev->name, __func__);
 
 	skb_queue_purge(&data->txq);
 
@@ -204,7 +192,7 @@ static int btsdio_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
 {
 	struct btsdio_data *data = hci_get_drvdata(hdev);
 
-	AICBT_INFO("%s,%s", hdev->name,__func__);
+	AICBT_INFO("%s,%s", hdev->name, __func__);
 
 	switch (hci_skb_pkt_type(skb)) {
 	case HCI_COMMAND_PKT:
@@ -238,7 +226,6 @@ int btsdio_init(void)
 
 	AICBT_INFO("%s", __func__);
 
-
 	data = kzalloc(sizeof(struct btsdio_data), GFP_KERNEL);
 	if (!data)
 		return -ENOMEM;
@@ -258,10 +245,10 @@ int btsdio_init(void)
 
 	data->hdev = hdev;
 
-	hdev->open     = btsdio_open;
-	hdev->close    = btsdio_close;
-	hdev->flush    = btsdio_flush;
-	hdev->send     = btsdio_send_frame;
+	hdev->open = btsdio_open;
+	hdev->close = btsdio_close;
+	hdev->flush = btsdio_flush;
+	hdev->send = btsdio_send_frame;
 
 	err = hci_register_dev(hdev);
 	if (err < 0) {
@@ -277,11 +264,11 @@ void btsdio_remove(void)
 {
 	struct btsdio_data *data;
 	struct hci_dev *hdev;
-    hdev = hci_dev_get(0);
-    if (!hdev) {
-        AICBT_ERR("%s: Failed to get hci dev[Null]", __func__);
-        return;
-    }
+	hdev = hci_dev_get(0);
+	if (!hdev) {
+		AICBT_ERR("%s: Failed to get hci dev[Null]", __func__);
+		return;
+	}
 	data = hci_get_drvdata(hdev);
 
 	AICBT_INFO("btsdio_remove");

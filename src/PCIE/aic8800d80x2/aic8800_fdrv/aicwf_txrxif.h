@@ -20,16 +20,16 @@
 #include "aicwf_usb.h"
 #endif
 
-#define CMD_BUF_MAX                 1536
-#define TXPKT_BLOCKSIZE             512
-#define MAX_AGGR_TXPKT_LEN          (1536*64)
-#define CMD_TX_TIMEOUT              5000
-#define TX_ALIGNMENT                4
+#define CMD_BUF_MAX 1536
+#define TXPKT_BLOCKSIZE 512
+#define MAX_AGGR_TXPKT_LEN (1536 * 64)
+#define CMD_TX_TIMEOUT 5000
+#define TX_ALIGNMENT 4
 
-#define RX_HWHRD_LEN                60 //58->60 word allined
-#define CCMP_OR_WEP_INFO            8
-#define MAX_RXQLEN                  10000
-#define RX_ALIGNMENT                4
+#define RX_HWHRD_LEN 60 //58->60 word allined
+#define CCMP_OR_WEP_INFO 8
+#define MAX_RXQLEN 10000
+#define RX_ALIGNMENT 4
 
 //#define DEBUG_ERROR_LEVEL           0
 //#define DEBUG_DEBUG_LEVEL           1
@@ -37,73 +37,74 @@
 
 //#define DBG_LEVEL                   DEBUG_DEBUG_LEVEL
 
-#define txrx_err(fmt, ...)          pr_err("txrx_err:<%s,%d>: " fmt, __func__, __LINE__, ##__VA_ARGS__)
-#define sdio_err(fmt, ...)          pr_err("sdio_err:<%s,%d>: " fmt, __func__, __LINE__, ##__VA_ARGS__)
-#define pcie_err(fmt, ...)          pr_err("pcie_err:<%s,%d>: " fmt, __func__, __LINE__, ##__VA_ARGS__)
-#define usb_err(fmt, ...)           pr_err("usb_err:<%s,%d>: " fmt, __func__, __LINE__, ##__VA_ARGS__)
-#define txrx_dbg(fmt, ...)	\
-do {	\
-	if (aicwf_dbg_level & LOGDEBUG) {	\
-		printk("aicpcie: " fmt, ##__VA_ARGS__); \
-	}	\
-} while (0)
-#define sdio_dbg(fmt, ...)	\
-do {	\
-	if (aicwf_dbg_level & LOGDEBUG) {	\
-		printk("aicsdio: " fmt, ##__VA_ARGS__); \
-	}	\
-} while (0)
-#define usb_dbg(fmt, ...)	\
-do {	\
-	if (aicwf_dbg_level & LOGDEBUG) {	\
-		printk("aicusb: " fmt, ##__VA_ARGS__); \
-	}	\
-} while (0)
+#define txrx_err(fmt, ...) \
+	pr_err("txrx_err:<%s,%d>: " fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define sdio_err(fmt, ...) \
+	pr_err("sdio_err:<%s,%d>: " fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define pcie_err(fmt, ...) \
+	pr_err("pcie_err:<%s,%d>: " fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define usb_err(fmt, ...) \
+	pr_err("usb_err:<%s,%d>: " fmt, __func__, __LINE__, ##__VA_ARGS__)
+#define txrx_dbg(fmt, ...)                                      \
+	do {                                                    \
+		if (aicwf_dbg_level & LOGDEBUG) {               \
+			printk("aicpcie: " fmt, ##__VA_ARGS__); \
+		}                                               \
+	} while (0)
+#define sdio_dbg(fmt, ...)                                      \
+	do {                                                    \
+		if (aicwf_dbg_level & LOGDEBUG) {               \
+			printk("aicsdio: " fmt, ##__VA_ARGS__); \
+		}                                               \
+	} while (0)
+#define usb_dbg(fmt, ...)                                      \
+	do {                                                   \
+		if (aicwf_dbg_level & LOGDEBUG) {              \
+			printk("aicusb: " fmt, ##__VA_ARGS__); \
+		}                                              \
+	} while (0)
 
-#define txrx_info(fmt, ...)	\
-do {	\
-	if (aicwf_dbg_level & LOGINFO) {	\
-		printk("aicpcie: " fmt, ##__VA_ARGS__); \
-	}	\
-} while (0)
-#define sdio_info(fmt, ...)	\
-do {	\
-	if (aicwf_dbg_level & LOGINFO) {	\
-		printk("aicsdio: " fmt, ##__VA_ARGS__); \
-	}	\
-} while (0)
-#define usb_info(fmt, ...)	\
-do {	\
-	if (aicwf_dbg_level & LOGINFO) {	\
-		printk("aicusb: " fmt, ##__VA_ARGS__); \
-	}	\
-} while (0)
+#define txrx_info(fmt, ...)                                     \
+	do {                                                    \
+		if (aicwf_dbg_level & LOGINFO) {                \
+			printk("aicpcie: " fmt, ##__VA_ARGS__); \
+		}                                               \
+	} while (0)
+#define sdio_info(fmt, ...)                                     \
+	do {                                                    \
+		if (aicwf_dbg_level & LOGINFO) {                \
+			printk("aicsdio: " fmt, ##__VA_ARGS__); \
+		}                                               \
+	} while (0)
+#define usb_info(fmt, ...)                                     \
+	do {                                                   \
+		if (aicwf_dbg_level & LOGINFO) {               \
+			printk("aicusb: " fmt, ##__VA_ARGS__); \
+		}                                              \
+	} while (0)
 
-enum aicwf_bus_state {
-	BUS_DOWN_ST,
-	BUS_UP_ST
-};
+enum aicwf_bus_state { BUS_DOWN_ST, BUS_UP_ST };
 
 struct aicwf_bus_ops {
-	int (*start) (struct device *dev);
-	void (*stop) (struct device *dev);
-	int (*txdata) (struct device *dev, struct sk_buff *skb);
-	int (*txmsg) (struct device *dev, u8 *msg, uint len);
+	int (*start)(struct device *dev);
+	void (*stop)(struct device *dev);
+	int (*txdata)(struct device *dev, struct sk_buff *skb);
+	int (*txmsg)(struct device *dev, u8 *msg, uint len);
 };
 
 struct frame_queue {
-	u16              num_prio;
-	u16              hi_prio;
-	u16              qmax;      /* max number of queued frames */
-	u16              qcnt;
+	u16 num_prio;
+	u16 hi_prio;
+	u16 qmax; /* max number of queued frames */
+	u16 qcnt;
 	struct sk_buff_head queuelist[8];
 };
 
 #ifdef CONFIG_PREALLOC_RX_SKB
 struct rx_frame_queue {
-    u16              qmax;      /* max number of queued frames */
-    u16              qcnt;
-    struct list_head queuelist;
+	u16 qmax; /* max number of queued frames */
+	u16 qcnt;
+	struct list_head queuelist;
 };
 #endif
 
@@ -122,8 +123,8 @@ struct aicwf_bus {
 	struct task_struct *bustx_thread;
 	struct task_struct *busrx_thread;
 #ifndef CONFIG_RX_TASKLET
-    struct completion rx_trgg;
-    struct task_struct *rx_thread;
+	struct completion rx_trgg;
+	struct task_struct *rx_thread;
 #endif
 };
 
@@ -158,14 +159,13 @@ struct aicwf_tx_priv {
 	u8 *tail;
 };
 
-
-#define DEFRAG_MAX_WAIT         40 //100
+#define DEFRAG_MAX_WAIT 40 //100
 #ifdef AICWF_RX_REORDER
-#define MAX_REORD_RXFRAME       250
-#define REORDER_UPDATE_TIME     50
-#define AICWF_REORDER_WINSIZE   64
-#define SN_LESS(a, b)           (((a-b)&0x800) != 0)
-#define SN_EQUAL(a, b)          (a == b)
+#define MAX_REORD_RXFRAME 250
+#define REORDER_UPDATE_TIME 50
+#define AICWF_REORDER_WINSIZE 64
+#define SN_LESS(a, b) (((a - b) & 0x800) != 0)
+#define SN_EQUAL(a, b) (a == b)
 
 struct reord_ctrl {
 	struct aicwf_rx_priv *rx_priv;
@@ -185,25 +185,25 @@ struct reord_ctrl_info {
 };
 
 struct recv_msdu {
-     struct sk_buff  *pkt;
-     u8  tid;
-     u16 seq_num;
-     u8 forward;
-     //uint len;
-     u8 is_amsdu;
-     u8 is_ap_reord;
-     u8 ap_fwd_cnt;
-     u8 ap_resend_cnt;
-     u8 *rx_data;
-     struct sk_buff *first_fwd_skb;
-     struct sk_buff *last_fwd_skb;
-     struct sk_buff *first_resend_skb;
-     struct sk_buff *last_resend_skb;
-     //for pending rx reorder list
-    struct list_head reord_pending_list;
-    //for total frame list, when rxframe from busif, dequeue, when submit frame to net, enqueue
-    struct list_head rxframe_list;
-    struct reord_ctrl *preorder_ctrl;
+	struct sk_buff *pkt;
+	u8 tid;
+	u16 seq_num;
+	u8 forward;
+	//uint len;
+	u8 is_amsdu;
+	u8 is_ap_reord;
+	u8 ap_fwd_cnt;
+	u8 ap_resend_cnt;
+	u8 *rx_data;
+	struct sk_buff *first_fwd_skb;
+	struct sk_buff *last_fwd_skb;
+	struct sk_buff *first_resend_skb;
+	struct sk_buff *last_resend_skb;
+	//for pending rx reorder list
+	struct list_head reord_pending_list;
+	//for total frame list, when rxframe from busif, dequeue, when submit frame to net, enqueue
+	struct list_head rxframe_list;
+	struct reord_ctrl *preorder_ctrl;
 };
 #endif
 
@@ -220,14 +220,14 @@ struct aicwf_rx_priv {
 
 	void *rwnx_vif;
 	atomic_t rx_cnt;
-    atomic_t rx_wait;
+	atomic_t rx_wait;
 	u32 data_len;
 	spinlock_t rxqlock;
-	#ifdef CONFIG_PREALLOC_RX_SKB
+#ifdef CONFIG_PREALLOC_RX_SKB
 	struct rx_frame_queue rxq;
-	#else
+#else
 	struct frame_queue rxq;
-	#endif
+#endif
 
 #ifdef AICWF_RX_REORDER
 	spinlock_t freeq_lock;
@@ -288,13 +288,15 @@ bool aicwf_is_framequeue_empty(struct frame_queue *pq);
 void aicwf_frame_tx(void *dev, struct sk_buff *skb);
 void aicwf_dev_skb_free(struct sk_buff *skb);
 struct sk_buff *aicwf_frame_dequeue(struct frame_queue *pq);
-struct sk_buff *aicwf_frame_queue_peek_tail(struct frame_queue *pq, int *prio_out);
+struct sk_buff *aicwf_frame_queue_peek_tail(struct frame_queue *pq,
+					    int *prio_out);
 #ifdef CONFIG_PREALLOC_RX_SKB
-void rxbuff_queue_flush(struct aicwf_rx_priv* rx_priv);
+void rxbuff_queue_flush(struct aicwf_rx_priv *rx_priv);
 void aicwf_rxframe_queue_init_2(struct rx_frame_queue *pq, int max_len);
 void rxbuff_free(struct rx_buff *rxbuff);
 struct rx_buff *rxbuff_dequeue(struct rx_frame_queue *pq);
-bool aicwf_rxbuff_enqueue(struct device *dev, struct rx_frame_queue *rxq, struct rx_buff *pkt);
+bool aicwf_rxbuff_enqueue(struct device *dev, struct rx_frame_queue *rxq,
+			  struct rx_buff *pkt);
 extern struct aicwf_rx_buff_list aic_rx_buff_list;
 #endif
 

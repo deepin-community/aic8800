@@ -14,16 +14,16 @@
 #include "rwnx_defs.h"
 
 typedef struct _android_wifi_priv_cmd {
-    char *buf;
-    int used_len;
-    int total_len;
+	char *buf;
+	int used_len;
+	int total_len;
 } android_wifi_priv_cmd;
 
 #ifdef CONFIG_COMPAT
 typedef struct _compat_android_wifi_priv_cmd {
-    compat_caddr_t buf;
-    int used_len;
-    int total_len;
+	compat_caddr_t buf;
+	int used_len;
+	int total_len;
 } compat_android_wifi_priv_cmd;
 #endif /* CONFIG_COMPAT */
 
@@ -36,4 +36,3 @@ void set_mon_chan(struct rwnx_vif *vif, char *parameter);
 void aicwf_pcie_dump(struct rwnx_hw *rwnx_hw);
 int get_cs_info(struct rwnx_vif *vif, u8 *mac_addr, u8 *val);
 #endif /* _AIC_PRIV_CMD_H_ */
-

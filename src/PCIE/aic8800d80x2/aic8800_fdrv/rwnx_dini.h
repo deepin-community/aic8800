@@ -15,7 +15,7 @@
 #include "rwnx_platform.h"
 
 int rwnx_dini_platform_init(struct pci_dev *pci_dev,
-							struct rwnx_plat **rwnx_plat);
+			    struct rwnx_plat **rwnx_plat);
 int rwnx_cfpga_irq_enable(struct rwnx_hw *rwnx_hw);
 int rwnx_cfpga_irq_disable(struct rwnx_hw *rwnx_hw);
 

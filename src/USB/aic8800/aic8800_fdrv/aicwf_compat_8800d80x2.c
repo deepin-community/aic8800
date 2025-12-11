@@ -2,19 +2,19 @@
 #include "rwnx_msg_tx.h"
 #include "reg_access.h"
 
-#define FW_USERCONFIG_NAME_8800D80X2         "aic_userconfig_8800d80x2.txt"
-#define FW_POWERLIMIT_NAME_8800D80X2         "aic_powerlimit_8800d80x2.txt"
+#define FW_USERCONFIG_NAME_8800D80X2 "aic_userconfig_8800d80x2.txt"
+#define FW_POWERLIMIT_NAME_8800D80X2 "aic_powerlimit_8800d80x2.txt"
 
 extern char aic_fw_path[200];
 
-int rwnx_request_firmware_common(struct rwnx_hw *rwnx_hw,
-	u32** buffer, const char *filename);
+int rwnx_request_firmware_common(struct rwnx_hw *rwnx_hw, u32 **buffer,
+				 const char *filename);
 void rwnx_plat_userconfig_parsing_8800d80x2(char *buffer, int size);
 void rwnx_plat_userconfig_parsing(char *buffer, int size);
-void rwnx_release_firmware_common(u32** buffer);
+void rwnx_release_firmware_common(u32 **buffer);
 
-
-int aicwf_set_rf_config_8800d80x2(struct rwnx_hw *rwnx_hw, struct mm_set_rf_calib_cfm *cfm)
+int aicwf_set_rf_config_8800d80x2(struct rwnx_hw *rwnx_hw,
+				  struct mm_set_rf_calib_cfm *cfm)
 {
 	int ret = 0;
 
@@ -30,68 +30,66 @@ int aicwf_set_rf_config_8800d80x2(struct rwnx_hw *rwnx_hw, struct mm_set_rf_cali
 	if ((ret = rwnx_send_rf_calib_req(rwnx_hw, cfm))) {
 		return -1;
 	}
-	return 0 ;
+	return 0;
 }
 
-
-int	rwnx_plat_userconfig_load_8800d80x2(struct rwnx_hw *rwnx_hw){
-    int size;
-    u32 *dst=NULL;
-    char *filename = FW_USERCONFIG_NAME_8800D80X2;
+int rwnx_plat_userconfig_load_8800d80x2(struct rwnx_hw *rwnx_hw)
+{
+	int size;
+	u32 *dst = NULL;
+	char *filename = FW_USERCONFIG_NAME_8800D80X2;
 
 #ifndef ANDROID_PLATFORM
-    sprintf(aic_fw_path, "%s/%s", aic_fw_path, "aic8800D80X2");
+	sprintf(aic_fw_path, "%s/%s", aic_fw_path, "aic8800D80X2");
 #endif
 
-    AICWFDBG(LOGINFO, "userconfig file path:%s \r\n", filename);
+	AICWFDBG(LOGINFO, "userconfig file path:%s \r\n", filename);
 
-    /* load file */
-    size = rwnx_request_firmware_common(rwnx_hw, &dst, filename);
-    if (size <= 0) {
-            AICWFDBG(LOGERROR, "wrong size of firmware file\n");
-            dst = NULL;
-            return 0;
-    }
+	/* load file */
+	size = rwnx_request_firmware_common(rwnx_hw, &dst, filename);
+	if (size <= 0) {
+		AICWFDBG(LOGERROR, "wrong size of firmware file\n");
+		dst = NULL;
+		return 0;
+	}
 
-    /* Copy the file on the Embedded side */
-    AICWFDBG(LOGINFO, "### Load file done: %s, size=%d\n", filename, size);
+	/* Copy the file on the Embedded side */
+	AICWFDBG(LOGINFO, "### Load file done: %s, size=%d\n", filename, size);
 
-    rwnx_plat_userconfig_parsing_8800d80x2((char *)dst, size);
+	rwnx_plat_userconfig_parsing_8800d80x2((char *)dst, size);
 
-    rwnx_release_firmware_common(&dst);
+	rwnx_release_firmware_common(&dst);
 
-    AICWFDBG(LOGINFO, "userconfig download complete\n\n");
-    return 0;
-
+	AICWFDBG(LOGINFO, "userconfig download complete\n\n");
+	return 0;
 }
 
 #ifdef CONFIG_POWER_LIMIT
 extern char default_ccode[];
 int rwnx_plat_powerlimit_load_8800d80x2(struct rwnx_hw *rwnx_hw)
 {
-    int size;
-    u32 *dst=NULL;
-    char *filename = FW_POWERLIMIT_NAME_8800D80X2;
+	int size;
+	u32 *dst = NULL;
+	char *filename = FW_POWERLIMIT_NAME_8800D80X2;
 
-    AICWFDBG(LOGINFO, "powerlimit file path:%s \r\n", filename);
+	AICWFDBG(LOGINFO, "powerlimit file path:%s \r\n", filename);
 
-    /* load file */
-    size = rwnx_request_firmware_common(rwnx_hw, &dst, filename);
-    if (size <= 0) {
-        AICWFDBG(LOGERROR, "wrong size of cfg file\n");
-        dst = NULL;
-        return 0;
-    }
+	/* load file */
+	size = rwnx_request_firmware_common(rwnx_hw, &dst, filename);
+	if (size <= 0) {
+		AICWFDBG(LOGERROR, "wrong size of cfg file\n");
+		dst = NULL;
+		return 0;
+	}
 
-    AICWFDBG(LOGINFO, "### Load file done: %s, size=%d\n", filename, size);
+	AICWFDBG(LOGINFO, "### Load file done: %s, size=%d\n", filename, size);
 
-    /* parsing the file */
-    rwnx_plat_powerlimit_parsing((char *)dst, size, default_ccode);
+	/* parsing the file */
+	rwnx_plat_powerlimit_parsing((char *)dst, size, default_ccode);
 
-    rwnx_release_firmware_common(&dst);
+	rwnx_release_firmware_common(&dst);
 
-    AICWFDBG(LOGINFO, "powerlimit download complete\n\n");
-    return 0;
+	AICWFDBG(LOGINFO, "powerlimit download complete\n\n");
+	return 0;
 }
 #endif
-

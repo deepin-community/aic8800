@@ -53,10 +53,10 @@ struct rwnx_mod_params {
 	char *ftl;
 	bool dpsm;
 	int tx_to_bk;
-    int tx_to_be;
-    int tx_to_vi;
-    int tx_to_vo;
-    int amsdu_tx;
+	int tx_to_be;
+	int tx_to_vi;
+	int tx_to_vo;
+	int amsdu_tx;
 #ifdef CONFIG_RWNX_FULLMAC
 	bool ant_div;
 #endif /* CONFIG_RWNX_FULLMAC */
@@ -71,11 +71,11 @@ void rwnx_custregd(struct rwnx_hw *rwnx_hw, struct wiphy *wiphy);
 void rwnx_enable_wapi(struct rwnx_hw *rwnx_hw);
 void rwnx_enable_mfp(struct rwnx_hw *rwnx_hw);
 struct ieee80211_regdomain *getRegdomainFromRwnxDB(struct wiphy *wiphy,
-												   char *alpha2);
+						   char *alpha2);
 
 struct ieee80211_regdomain *getRegdomainFromRwnxDBIndex(struct wiphy *wiphy,
-														int index);
+							int index);
 void rwnx_get_countrycode_channels(struct wiphy *wiphy,
-		struct ieee80211_regdomain *regdomain);
+				   struct ieee80211_regdomain *regdomain);
 
 #endif /* _RWNX_MOD_PARAM_H_ */

@@ -14,47 +14,47 @@
 #define _RWNX_MOD_PARAM_H_
 
 struct rwnx_mod_params {
-    bool ht_on;
-    bool vht_on;
-    bool he_on;
-    int mcs_map;
-    int he_mcs_map;
-    bool he_ul_on;
-    bool ldpc_on;
-    bool stbc_on;
-    bool gf_rx_on;
-    int phy_cfg;
-    int uapsd_timeout;
-    bool ap_uapsd_on;
-    bool sgi;
-    bool sgi80;
-    bool use_2040;
-    bool use_80;
-    bool custregd;
-    bool custchan;
-    int nss;
-    int amsdu_rx_max;
-    bool bfmee;
-    bool bfmer;
-    bool mesh;
-    bool murx;
-    bool mutx;
-    bool mutx_on;
-    unsigned int roc_dur_max;
-    int listen_itv;
-    bool listen_bcmc;
-    int lp_clk_ppm;
-    bool ps_on;
-    int tx_lft;
-    int amsdu_maxnb;
-    int uapsd_queues;
-    bool tdls;
-    bool uf;
-    bool auto_reply;
-    char *ftl;
-    bool dpsm;
+	bool ht_on;
+	bool vht_on;
+	bool he_on;
+	int mcs_map;
+	int he_mcs_map;
+	bool he_ul_on;
+	bool ldpc_on;
+	bool stbc_on;
+	bool gf_rx_on;
+	int phy_cfg;
+	int uapsd_timeout;
+	bool ap_uapsd_on;
+	bool sgi;
+	bool sgi80;
+	bool use_2040;
+	bool use_80;
+	bool custregd;
+	bool custchan;
+	int nss;
+	int amsdu_rx_max;
+	bool bfmee;
+	bool bfmer;
+	bool mesh;
+	bool murx;
+	bool mutx;
+	bool mutx_on;
+	unsigned int roc_dur_max;
+	int listen_itv;
+	bool listen_bcmc;
+	int lp_clk_ppm;
+	bool ps_on;
+	int tx_lft;
+	int amsdu_maxnb;
+	int uapsd_queues;
+	bool tdls;
+	bool uf;
+	bool auto_reply;
+	char *ftl;
+	bool dpsm;
 #ifdef CONFIG_RWNX_FULLMAC
-    bool ant_div;
+	bool ant_div;
 #endif /* CONFIG_RWNX_FULLMAC */
 };
 
@@ -67,10 +67,9 @@ void rwnx_custregd(struct rwnx_hw *rwnx_hw, struct wiphy *wiphy);
 void rwnx_enable_wapi(struct rwnx_hw *rwnx_hw);
 void rwnx_enable_mfp(struct rwnx_hw *rwnx_hw);
 struct ieee80211_regdomain *getRegdomainFromRwnxDB(struct wiphy *wiphy,
-												   char *alpha2);
+						   char *alpha2);
 
 struct ieee80211_regdomain *getRegdomainFromRwnxDBIndex(struct wiphy *wiphy,
-														int index);
-
+							int index);
 
 #endif /* _RWNX_MOD_PARAM_H_ */
