@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/pkg-info.mk
+include /usr/share/dpkg/architecture.mk
+
+%:
+	dh $@ --buildsystem=none
+
+override_dh_install:
+	dh_install
+	find debian/ -name ".gitignore" -exec rm -v {} \;
