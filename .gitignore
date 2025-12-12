@@ -6,3 +6,12 @@
 *.order
 *.mod.c
 *.mod
+*.debhelper
+*.debhelper.log
+*.substvars
+debian/aic8800-firmware
+debian/aic8800-pcie-dkms
+debian/aic8800-sdio-dkms
+debian/aic8800-usb-dkms
+debian/debhelper-build-stamp
+debian/files

@@ -1,0 +1,53 @@
+Source: aic8800
+Maintainer: "Cryolitia PukNgae" <cryolitia@deepin.org>
+Section: kernel
+Priority: optional
+Standards-Version: 4.6.0
+Build-Depends: debhelper (>=12~),
+               dh-exec,
+               dh-sequence-dkms,
+
+Package: aic8800-sdio-dkms
+Architecture: all
+Section: kernel
+Priority: optional
+Depends: aic8800-firmware (= ${binary:Version}),
+         ${misc:Depends},
+Conflicts: aic8800-usb-dkms,
+           aic8800-pcie-dkms,
+Description: dkms sources for Aicsemi aic8800 SDIO Wi-Fi driver
+ This package provides the dkms source code for Aicsemi
+ aic8800 SDIO Wi-Fi driver.
+
+Package: aic8800-usb-dkms
+Architecture: all
+Section: kernel
+Priority: optional
+Depends: aic8800-firmware (= ${binary:Version}),
+         ${misc:Depends},
+Conflicts: aic8800-sdio-dkms,
+           aic8800-pcie-dkms,
+Description: dkms sources for Aicsemi aic8800 USB Wi-Fi driver
+ This package provides the dkms source code for Aicsemi
+ aic8800 USB Wi-Fi driver.
+
+Package: aic8800-pcie-dkms
+Architecture: all
+Section: kernel
+Priority: optional
+Depends: aic8800-firmware (= ${binary:Version}),
+         ${misc:Depends},
+Conflicts: aic8800-sdio-dkms,
+           aic8800-usb-dkms,
+Description: dkms sources for Aicsemi aic8800 PCIe Wi-Fi driver
+ This package provides the dkms source code for Aicsemi
+ aic8800 PCIe Wi-Fi driver.
+
+Package: aic8800-firmware
+Architecture: all
+Section: kernel
+Priority: optional
+Depends: ${misc:Depends},
+Description: Aicsemi aic8800 supplemental firmware
+ This package contains Aicsemi aic8800 firmware that are not
+ shipped by Debian.
